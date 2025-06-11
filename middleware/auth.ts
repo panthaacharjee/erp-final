@@ -13,14 +13,15 @@ declare global {
 }
 
 exports.isAuthenticatedUser = catchAsyncError(async (req:Request, res:Response, next:NextFunction) => {
-  const  token =  req.headers["authorization"] || req.cookies;
-  const bearer = token.split(" ")
+  const {token} = req.cookies
+  // const  token =  req.headers["authorization"] || req.cookies;
+  // const bearer = token.split(" ")
 
   if (!token) {
     return next(ErrorHandler("Token Not Found!", 404, res, next));
   } 
 
-    const decodeData = jwt.verify(bearer[1], process.env.JWT_SECRET);
+    const decodeData = jwt.verify(token, process.env.JWT_SECRET);
     const user = await User.findById(decodeData.id);
     req.user = user
     next();
