@@ -23,6 +23,11 @@ module.exports = (err:Error, req:Request, res:Response, next:NextFunction) => {
     return ErrorHandler(message, 400, res, next);
   }
 
+    //JWT Unauthorized Error
+  if (err.name === 'UnauthorizedError') {
+    const message = `Json Web Token is Unauthorized, try again`;
+    return ErrorHandler(message, 400, res, next);
+  }
   res.json({
     success: false,
     message: err.message,
