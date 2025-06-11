@@ -128,3 +128,16 @@ export const getLoginHistory = catchAsyncError(async (req: Request, res: Respons
     
     res.json({ loginHistory: `${dateH}/${dateM}/${dateS}`, login:user.loginHistory }, );
 })
+
+
+/* ===================================================================================================== */
+/* ============================= USER PROFILE (GET) (/user/profile) ================================= */
+/* ===================================================================================================== */
+exports.getUser = catchAsyncError(async(req:Request, res:Response, next:NextFunction)=>{
+    const user = await User.findById((req as any).user._id)
+
+    res.status(200).json({
+      success:true,
+      user
+    })
+})

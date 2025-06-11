@@ -14,7 +14,18 @@ app.use(
 );
 app.use(express.json({ limit: "50mb" }));
 
-app.use(cors());
+const corsOptions = {
+  origin: [
+    'http://localhost:3000', // Your local development
+    'https://your-production-frontend.com' // Your production frontend
+  ],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
+};
+
+// app.options('*', cors(corsOptions));
+app.use(cors(corsOptions));
 
 
 app.use(cookieParser());
