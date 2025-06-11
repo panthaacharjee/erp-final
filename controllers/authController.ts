@@ -4,9 +4,9 @@ const catchAsyncError = require("../middleware/catchAsyncError")
 import User from "../models/Employee/UserModel";
 import ErrorHandler from "../utils/errorhandler";
 import hashPassword from "../utils/HashPassword";
-// const {comparePassword} = require("../utils/ComparePassword")
-// const sendToken = require('../utils/jwtToken')
-// const token = require("../utils/Token")
+const {comparePassword} = require("../utils/ComparePassword")
+const sendToken = require('../utils/jwtToken')
+const token = require("../utils/Token")
 
 
 
@@ -56,10 +56,36 @@ exports.registerEmployee = catchAsyncError(async (req:Request, res:Response, nex
   });
 
 
-exports.getUsers = async(req:Request, res:Response)=>{
-    const users = await User.find()
-    res.status(200).json({
-        success:true,
-        users
-    })
-}
+/* ===================================================================================================== */
+/* ============================= LOGIN USER (POST) (/login/user) ================================= */
+/* ===================================================================================================== */
+
+exports.loginUser = catchAsyncError(async (req:Request, res:Response, next:NextFunction) => {
+    const { userName, password }:{userName:string, password:string }= req.body;
+
+     if(!userName || !password){
+      return next(ErrorHandler("EMAIL OR PASSWORD REQUERED", 400, res, next))
+     }
+   
+     const user = await User.findOne({ userName }).select("+authentication.password")
+     if(!user){
+        return next(ErrorHandler("PLEASE ENTER VALID USERNAME OR PASSWORD", 400, res, next))
+     }
+
+     const isPasswordMatched = await comparePassword(password, user.authentication.password)
+     if(!isPasswordMatched){
+      return next(ErrorHandler("PLEASE ENTER VALID USERNAME OR PASSWORD", 400, res, next)) 
+     }  
+    
+    await user.loginHistory.push({
+      timestamp: new Date(),
+      ipAddress: req.clientIp,
+      // userAgent: req.headers['user-agent']
+    });
+    await user.save()
+    
+    const sessionToken = token(user._id)
+    user.authentication.sessionToken = sessionToken
+    await user.save()
+    sendToken(user, 201, res);
+});

@@ -1,10 +1,10 @@
 const expressRoute = require("express");
 const router = expressRoute.Router();
+const capture = require("../middleware/captureIp")
 
-const {registerEmployee, getUsers} = require("../controllers/authController")
+const {registerEmployee, loginUser} = require("../controllers/authController")
 
 router.route("/register/user").post(registerEmployee)
-router.route("/users").get(getUsers)
-
+router.route("/login/user").post(capture, loginUser)
 
 module.exports = router
