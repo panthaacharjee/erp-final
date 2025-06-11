@@ -4,18 +4,22 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-      "build": "npm install --build-from-source && tsc",
-      "start": "node dist/index.js",
-      "dev": "nodemon index.ts"
+    "build": "npm install --build-from-source && tsc",
+    "start": "node dist/index.js",
+    "dev": "nodemon index.ts"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
+    "bcryptjs": "^3.0.2",
+    "body-parser": "^2.2.0",
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
+    "express-fileupload": "^1.5.1",
     "mongoose": "^8.15.1"
   },
   "devDependencies": {
