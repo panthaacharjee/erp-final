@@ -4,6 +4,7 @@ const app = express()
 const bodyParser = require('body-parser')
 const cookieParser = require("cookie-parser");
 const fileUpload = require("express-fileupload");
+const errorMiddleware = require("./middleware/error")
 
 
 app.use(bodyParser.urlencoded({ extended: true, limit: "50mb" }));
@@ -18,5 +19,7 @@ app.use(cookieParser());
 const user = require("./routes/authRoute")
 
 app.use("/api/v1", user)
+
+app.use(errorMiddleware)
 
 module.exports = app
