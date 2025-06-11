@@ -14,15 +14,7 @@ app.use(
 );
 app.use(express.json({ limit: "50mb" }));
 
-// Configure CORS
-const corsOptions = {
-  origin: '*', // Your Next.js frontend
-  credentials: true, // REQUIRED for cookies
-  methods: ['GET', 'POST', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-};
-
-app.use(cors(corsOptions));
+app.use(cors());
 
 
 app.use(cookieParser());

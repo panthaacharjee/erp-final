@@ -5,6 +5,7 @@ const connectDB = require("./config/Datebase")
 //DOTENV CONFIGURATION
 dotenv.config({path:"./config.env"})
 
+
 connectDB()
 
 server.listen(process.env.PORT, ()=>{
