@@ -89,3 +89,42 @@ exports.loginUser = catchAsyncError(async (req:Request, res:Response, next:NextF
     await user.save()
     sendToken(user, 201, res);
 });
+
+
+/* ===================================================================================================== */
+/* ============================= LOGOUT USER (GET) (/logout) ================================= */
+/* ===================================================================================================== */
+
+exports.logout = catchAsyncError(async (req:Request, res:Response, next:NextFunction) => {
+    res.cookie("token", null, {
+      expires: new Date(Date.now()),
+      httpOnly: true,
+    });
+    res.status(200).json({
+      success: true,
+      message: "LOG OUT",
+    });
+  });
+
+
+  
+/* ===================================================================================================== */
+/* ============================= LOGIN HISTROY USER (GET) (/user/login/history) ================================= */
+/* ===================================================================================================== */
+
+export const getLoginHistory = catchAsyncError(async (req: Request, res: Response) => {
+  const user = await User.findById((req as any).user._id)
+      .select('loginHistory')
+      .lean();
+    
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const date = new Date(user.loginHistory[user.loginHistory.length-2].timestamp)
+    const dateH = date.getHours()
+    const dateM = date.getMinutes()
+    const dateS = date.getSeconds()
+    
+    res.json({ loginHistory: `${dateH}/${dateM}/${dateS}`, login:user.loginHistory }, );
+})
