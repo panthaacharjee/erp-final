@@ -64,7 +64,7 @@ exports.loginUser = catchAsyncError(async (req:Request, res:Response, next:NextF
     const { userName, password }:{userName:string, password:string }= req.body;
 
      if(!userName || !password){
-      return next(ErrorHandler("EMAIL OR PASSWORD REQUERED", 400, res, next))
+      return next(ErrorHandler("USERNAME OR PASSWORD REQUERED", 400, res, next))
      }
    
      const user = await User.findOne({ userName }).select("+authentication.password")
@@ -88,6 +88,70 @@ exports.loginUser = catchAsyncError(async (req:Request, res:Response, next:NextF
     user.authentication.sessionToken = sessionToken
     await user.save()
     sendToken(user, 201, res);
+});
+
+/* ===================================================================================================== */
+/* ============================= LOGIN GITHUB(POST) (/login/github) ================================= */
+/* ===================================================================================================== */
+
+exports.loginGithub = catchAsyncError(async (req:Request, res:Response, next:NextFunction) => {
+    const { email, name }:{
+        email:string, 
+        name:string,
+    }= req.body;
+    const gitHubUser = await User.findOne({email})
+
+
+    //  // Verify GitHub token (optional but recommended)
+    // const githubResponse = await fetch("https://api.github.com/user", {
+    //   headers: { Authorization: `token ${accessToken}` }
+    // });
+    
+    // if (!githubResponse.ok) {
+    //   return res.status(401).json({ error: "Invalid GitHub token" });
+    // }
+
+    // if(email || name){
+    //     return next(ErrorHandler("This field is required", 404, res, next))
+    // }
+     if(!gitHubUser){
+        const user = await User.create({
+            employeeId:"GUEST-230001",
+            email:email,
+            authentication: {
+                password:"123456789"
+            },
+            role:"Guest",
+            name:name,
+            salary:20000,
+            userName: `Gu`,
+            
+        })
+            await user.loginHistory.push({
+                timestamp: new Date(),
+                ipAddress: req.clientIp,
+            // userAgent: req.headers['user-agent']
+            });
+            await user.save()
+            const sessionToken = token(user._id)
+            user.authentication.sessionToken = sessionToken
+            await user.save() 
+            sendToken(user, 201, res);
+            console.log(user)
+     }else{
+            await gitHubUser.loginHistory.push({
+                timestamp: new Date(),
+                ipAddress: req.clientIp,
+            // userAgent: req.headers['user-agent']
+            });
+            await gitHubUser.save()
+            const sessionToken = token(gitHubUser._id)
+            gitHubUser.authentication.sessionToken = sessionToken
+            await gitHubUser.save()
+            sendToken(gitHubUser, 201, res);
+     }
+
+           
 });
 
 
@@ -141,3 +205,6 @@ exports.getUser = catchAsyncError(async(req:Request, res:Response, next:NextFunc
       user
     })
 })
+
+
+//*Pantha@acharjee#
