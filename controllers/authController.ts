@@ -91,32 +91,46 @@ exports.loginUser = catchAsyncError(async (req:Request, res:Response, next:NextF
 });
 
 /* ===================================================================================================== */
-/* ============================= LOGIN GITHUB(POST) (/login/github) ================================= */
+/* ============================= LOGIN AUTHORIZATION(POST) (/login/auth) ================================= */
 /* ===================================================================================================== */
 
-exports.loginGithub = catchAsyncError(async (req:Request, res:Response, next:NextFunction) => {
-    const { email, name }:{
+exports.loginAuth = catchAsyncError(async (req:Request, res:Response, next:NextFunction) => {
+    const { email, name, accountType }:{
         email:string, 
         name:string,
+        accountType:string,
     }= req.body;
-    const gitHubUser = await User.findOne({email})
 
+    //Generating Random UserName
+    function getSixDigitRandom(): number {
+      return Math.floor(100000 + Math.random() * 900000);
+    }
 
-    //  // Verify GitHub token (optional but recommended)
-    // const githubResponse = await fetch("https://api.github.com/user", {
-    //   headers: { Authorization: `token ${accessToken}` }
-    // });
+    const random6Digit = getSixDigitRandom(); 
+    const id = `Gu-${random6Digit}`
+
+    const accountUser = await User.find({account:accountType})
+    let finalUser = accountUser.filter((val)=>val.email === email)
     
-    // if (!githubResponse.ok) {
-    //   return res.status(401).json({ error: "Invalid GitHub token" });
-    // }
-
-    // if(email || name){
-    //     return next(ErrorHandler("This field is required", 404, res, next))
-    // }
-     if(!gitHubUser){
+    if(finalUser.length !== 0){
+      const user = await User.findById(finalUser[0]._id)
+      if(user){
+            await user.loginHistory.push({
+                timestamp: new Date(),
+                ipAddress: req.clientIp,
+            // userAgent: req.headers['user-agent']
+            });
+            await user.save()
+            const sessionToken = token(user._id)
+            user.authentication.sessionToken = sessionToken
+            await user.save()
+            sendToken(user, 201, res);
+      }else{
+        return next(ErrorHandler("SOMETHING WENT WRONG! PROCCED AFTER SOMETIMES", 502, res, next))
+      }
+    }else{
         const user = await User.create({
-            employeeId:"GUEST-230001",
+            employeeId:id,
             email:email,
             authentication: {
                 password:"123456789"
@@ -125,6 +139,7 @@ exports.loginGithub = catchAsyncError(async (req:Request, res:Response, next:Nex
             name:name,
             salary:20000,
             userName: `Gu`,
+            account:accountType
             
         })
             await user.loginHistory.push({
@@ -137,21 +152,7 @@ exports.loginGithub = catchAsyncError(async (req:Request, res:Response, next:Nex
             user.authentication.sessionToken = sessionToken
             await user.save() 
             sendToken(user, 201, res);
-            console.log(user)
-     }else{
-            await gitHubUser.loginHistory.push({
-                timestamp: new Date(),
-                ipAddress: req.clientIp,
-            // userAgent: req.headers['user-agent']
-            });
-            await gitHubUser.save()
-            const sessionToken = token(gitHubUser._id)
-            gitHubUser.authentication.sessionToken = sessionToken
-            await gitHubUser.save()
-            sendToken(gitHubUser, 201, res);
-     }
-
-           
+    }       
 });
 
 

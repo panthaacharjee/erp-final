@@ -24,6 +24,10 @@ const userSchema = new Schema<IUser>({
     userName:{
         type: String,
     },
+    account:{
+        type: String,
+        default:"Regular"
+    },
     authentication:{
         password:{
             type: String,
