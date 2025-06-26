@@ -17,7 +17,7 @@ app.use(express.json({ limit: "50mb" }));
 const corsOptions = {
   origin: [
     'http://localhost:3000', // Your local development
-    'https://your-production-frontend.com' // Your production frontend
+    'https://erp-final-fontend.vercel.app' // Your production frontend
   ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
