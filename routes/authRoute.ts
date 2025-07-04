@@ -13,7 +13,7 @@ const {
 
 const {isAuthenticatedUser} = require("../middleware/auth")
 
-router.route("/register/user").post(registerEmployee)
+router.route("/register/user").post( registerEmployee)
 router.route("/login/user").post(capture, loginUser)
 router.route("/login/auth").post(capture, loginAuth)
 router.route("/logout").get(logout)

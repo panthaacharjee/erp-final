@@ -16,7 +16,14 @@ interface IUser extends Document {
         url :string
     }
     role: string,
-    salary:number,
+    salary:{
+        basic:number,
+        home:number,
+        medical:number,
+        conveyance:number,
+        food:number,
+        special:number,
+    },
     joinDate:Date
     createdAt:Date,
     loginHistory: ILoginHistory[],

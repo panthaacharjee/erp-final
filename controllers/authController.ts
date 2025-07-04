@@ -4,6 +4,7 @@ const catchAsyncError = require("../middleware/catchAsyncError")
 import User from "../models/Employee/UserModel";
 import ErrorHandler from "../utils/errorhandler";
 import hashPassword from "../utils/HashPassword";
+import Counter from "../models/Employee/EmployeeSerial";
 const {comparePassword} = require("../utils/ComparePassword")
 const sendToken = require('../utils/jwtToken')
 const token = require("../utils/Token")
@@ -15,43 +16,212 @@ const token = require("../utils/Token")
 /* ===================================================================================================== */
 
 exports.registerEmployee = catchAsyncError(async (req:Request, res:Response, next:NextFunction) => {
-    const { id, name, userName, password, salary, role}:{
+    const { id, 
+      name,  
+      joinDate, 
+      section, 
+      category, 
+      designation, 
+      department, 
+      vill, 
+      thana,
+      post,
+      postCode, 
+      district, 
+      father, 
+      mother,
+      blood,
+      nid, 
+      dob,
+      phone,
+      qualification,
+      nomineeName, 
+      relation, 
+      account, 
+      bankName, 
+      route,
+      userName,
+      password,
+      basic,
+      home,
+      medical,
+      conveyance,
+      food,
+      special
+    }:{
+        userName:string,
+        password:string,
         id:string,
         name:string, 
-        userName:string, 
-        password:string, 
-        salary:number, 
-        role: String
+        salary:number,
+        joinDate:Date,
+        section:string,
+        category:string,
+        designation:string,
+        department:string,
+        vill:string,
+        thana:string,
+        post:string,
+        postCode:number,
+        district:string,
+        father : string,
+        mother:string,
+        blood:string,
+        nid:string,
+        dob:Date,
+        phone:string,
+        certificate:string,
+        qualification:string,
+        nomineeName:string,
+        relation:string,
+        account:string,
+        bankName :string,
+        route:number,
+        basic:number,
+        home:number,
+        medical:number,
+        conveyance:number,
+        food:number,
+        special:number
     } = req.body;
 
 
-
-     if(!userName || !password){
-      return next(ErrorHandler("USERNAME OR PASSWORD REQUERED", 400, res, next))
-     }
-
-    const userByEmail = await User.findOne({ userName }).catch();
-    if (userByEmail) {
-      return next(ErrorHandler("THIS USER ALREADY EXISTS", 400, res, next))
+    if(id==='new'){
+      if(name===""){
+        return next(ErrorHandler("NAME IS REQUIRED", 404, res, next))
+      }
     }
+    const userIdProvider = (props:number)=>{
+      if(props< 10){
+          return `Employee-0000${props}`
+      }else if(props < 100){
+          return `Employee-000${props}`
+      }else if(props< 1000){
+          return `Employee-00${props}`
+      }else if(props< 10000){
+          return `Employee-0${props}`
+      }else{
+          return `Employee-${props}`
+      }
+    }
+    const user = await User.findOne({employeeId:id})
+    if(user){
+        const updateUser = await User.findByIdAndUpdate(user._id,{
+              name,
+              joinDate,
+              section,
+              category,
+              designation,
+              department,
+              address:{
+                vill: vill,
+                thana: thana,
+                post: post,
+                postCode: postCode, 
+                district: district,
+              },
+              salary:{
+                basic: basic,
+                home: home,
+                medical:medical,
+                conveyance:conveyance,
+                food:food,
+                special:special
+              },
+              personalInformation:{
+                father: father, 
+                mother :mother,
+                blood : blood,
+                nid: nid, 
+                dob : dob,
+                phone : phone,
+              },
+              education:{
+                 qualification: qualification,
+              },
+              nominee:{
+                name: nomineeName, 
+                relation: relation,
+              }, 
+              bank:{
+                account: account, 
+                name: bankName, 
+                route: route
+              },
+        },{
+          new: true,
+          runValidators: true,
+          useFindAndModify: false,
+        })
+        res.status(200).json({
+              success:true,
+              message:"SUCCESSFULLY EMPLOYEE UPDATE",
+              user: updateUser
+        })
+    }else{
+      if(id===''){
+        return next(ErrorHandler("THIS FIELD IS REQUIRED", 500, res, next))
+      }else if(id === 'new'){
+        const counter = await Counter.findOneAndUpdate(
+          {id:'aval'},
+          { $inc: { seq: 1 } },
+          {
+            new: true,
+            upsert: true,
+            setDefaultsOnInsert: true
+          }
+        )
+            
+            const userId = userIdProvider(counter.seq)
+        
+            const user = await User.create({
+              employeeId: userId,
+              name,
+              joinDate,
+              section,
+              category,
+              designation,
+              department,
+            })
+            res.status(200).json({
+              success:true,
+              message:"SUCCESSFULLY EMPLOYEE REGISTERED",
+              user
+            })
+      }else if(!isNaN(parseFloat(id)) && isFinite(Number(id)) === false){
+        next(ErrorHandler("PLEASE ENTER VALID NUMBER", 404, res, next))
+      }else if(!isNaN(parseFloat(id)) && isFinite(Number(id)) === true){
+        let userId= userIdProvider(parseInt(id)) ;
+            
+        const user = await User.findOne({employeeId:userId})
+        if(!user){
+          next(ErrorHandler("USER NOT FOUND", 500, res, next))
+        }
+        res.status(200).json({
+              success:true,
+              user
+            })
+      }else{
+        next(ErrorHandler("PLEASER ENTER VALID ID NUMBER OR new", 500, res, next))
+      }
+    }  
 
-    const hashingPassword = await hashPassword(password)
+    //  if(!userName || !password){
+    //   return next(ErrorHandler("USERNAME OR PASSWORD REQUERED", 400, res, next))
+    //  }
+
+    // const userByEmail = await User.findOne({ userName }).catch();
+    // if (userByEmail) {
+    //   return next(ErrorHandler("THIS USER ALREADY EXISTS", 400, res, next))
+    // }
+
+    // const hashingPassword = await hashPassword(password)
     
-    await User.create({
-      employeeId:id,
-      name,
-      userName,
-      authentication:{
-        password:hashingPassword
-      },
-      salary,
-      role
-    });
-
+    
 
     res.status(200).json({
-      success: false,
-      message:"SUCCESSFULLY EMPLOYEE REGISTERED"
+      success: true,
+      message:"SUCCESSFULLY EMPLOYEE REGISTERED",
     })
   });
 

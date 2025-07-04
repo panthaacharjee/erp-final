@@ -1,6 +1,7 @@
 import {Schema, model} from "mongoose"
 import IUser from "./UserInterface"
 import ILoginHistory from "./LoginHistoryInterface";
+import Counter from "./EmployeeSerial";
 
 
 const LoginHistorySchema = new Schema<ILoginHistory>({
@@ -9,9 +10,10 @@ const LoginHistorySchema = new Schema<ILoginHistory>({
   userAgent: { type: String }
 });
 
+
 const userSchema = new Schema<IUser>({
     employeeId: {
-        type:String,
+        type: String,
         required:true
     },
     name: {
@@ -31,7 +33,6 @@ const userSchema = new Schema<IUser>({
     authentication:{
         password:{
             type: String,
-            required: true,
             select: false
         },
         sessionToken:{
@@ -45,11 +46,26 @@ const userSchema = new Schema<IUser>({
     },
     role:{
         type: String,
-        required:true
     },
     salary:{
-        type:Number,
-        required:true
+        basic:{
+            type:Number,
+        },
+        home:{
+            type:Number,
+        },
+        medical:{
+            type:Number,
+        },
+        conveyance:{
+            type:Number,
+        },
+        food:{
+            type:Number,
+        },
+        special:{
+            type:Number,
+        }
     },
     loginHistory:[LoginHistorySchema],
     joinDate:{
@@ -85,6 +101,7 @@ const userSchema = new Schema<IUser>({
         blood: String,
         dob: Date,
         phone: String,
+        nid:String
     },
     education:{
         certificate: String,
@@ -109,6 +126,7 @@ const userSchema = new Schema<IUser>({
 },{
     timestamps:true
 })
+
 
 
 
