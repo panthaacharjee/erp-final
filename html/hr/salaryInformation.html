@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Salary Information</title>
+    <style>
+        *{
+            margin: 0px;
+            padding: 0px;
+        }
+        .pdf-paragraph{
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div style="text-align: center; line-height: 24px; border-bottom: 2px solid black; padding: 6px 0px; margin-top: 10px;">
+        <p style="font-weight: bold; font-size: 16px;">আরপাক ট্রিমস এন্ড প্যাকেজিং লিমিটেড</p>
+        <p style="font-size: 12px;">প্লট  # ৩০৪৫-৪৪, বিনোদপুর, সদর, নোয়াখালী-৩৮০০, বাংলাদেশ</p>
+        <p style="font-size: 12px;">মজুরি রশিদ ({{salaryDate}})</p>
+    </div>
+    <div style="display: flex; justify-content: space-between; padding: 2px 40px; line-height: 24px; border-bottom: 2px solid black;">
+        <div style="width: 40%;">
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+                <p class="pdf-paragraph">Name <span style="font-size: 12px;">(নাম)</span> : </p>
+                <p class="pdf-paragraph">{{name}}</p>
+            </div>
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+                <p class="pdf-paragraph">ID No. <span style="font-size: 12px;">(আইডি)</span> : </p>
+                <p class="pdf-paragraph">{{id}}</p>
+            </div>
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+                <p class="pdf-paragraph">Designation <span style="font-size: 10px">(পদবি)</span> : </p>
+                <p class="pdf-paragraph">{{designation}} ({{department}})</p>
+            </div>
+        </div>
+        <div style="width: 40%;">
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+                <p class="pdf-paragraph">Join Date <span style="font-size: 12px;">(যোগদানের তারিখ)</span> : </p>
+                <p class="pdf-paragraph">{{joinDate}}</p>
+            </div>
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+                <p class="pdf-paragraph">Grade <span style="font-size: 12px;">(গ্রেড)</span> : </p>
+                <p class="pdf-paragraph">{{grade}}</p>
+            </div>
+             <div style="display: flex; align-items: center; justify-content: space-between;">
+                <p class="pdf-paragraph">Department <span style="font-size: 12px;">(বিভাগ)</span> : </p>
+                <p class="pdf-paragraph">{{category}}</p>
+            </div>
+        </div>
+    </div>
+    <div  style="padding: 2px 40px; display: flex; justify-content: space-between; line-height: 24px;">
+        <div style="width: 40%;">
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+                <p class="pdf-paragraph">Basic Salary <span style="font-size: 12px;">(মূল বেতন)</span> : </p>
+                <p class="pdf-paragraph">{{basic}}</p>
+            </div>
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+                <p class="pdf-paragraph">Home Rent <span style="font-size: 12px;">(বাড়ি ভাড়া)</span> : </p>
+                <p class="pdf-paragraph">{{home}}</p>
+            </div>
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+                <p class="pdf-paragraph">Medical Allowence <span style="font-size: 12px;">(চিকিৎসা ভাতা)</span> : </p>
+                <p class="pdf-paragraph">{{medical}}</p>
+            </div>
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+                <p class="pdf-paragraph">Conveyance Allowence <span style="font-size: 12px;">(যাতায়াত ভাতা)</span> : </p>
+                <p class="pdf-paragraph">{{conveyance}}</p>
+            </div>
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+                <p class="pdf-paragraph">Food Allowence <span style="font-size: 12px;">(খাদ্য ভাতা)</span> : </p>
+                <p class="pdf-paragraph">{{food}}</p>
+            </div>
+            <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid black; border-top: 2px solid black;">
+                <p class="pdf-paragraph">Gross Wages <span style="font-size: 12px;">(মোট মজুরি)</span> : </p>
+                <p class="pdf-paragraph">{{gross}}</p>
+            </div>
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+                <p class="pdf-paragraph">Special Allowence <span style="font-size: 12px;">(বিশেষ ভাতা)</span> : </p>
+                <p class="pdf-paragraph">{{special}}</p>
+            </div>
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+                <p class="pdf-paragraph">Present Days <span style="font-size: 12px;">(উপস্থিতি)</span> : </p>
+                <p class="pdf-paragraph">{{present}}</p>
+            </div>
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+                <p class="pdf-paragraph">Weekend Days <span style="font-size: 12px;">(সাপ্তাহিক ছুটি)</span> : </p>
+                <p class="pdf-paragraph">{{weekend}}</p>
+            </div>
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+                <p class="pdf-paragraph">Holidays <span style="font-size: 12px;">(সরকারী ছুটি)</span> : </p>
+                <p class="pdf-paragraph">{{holidays}}</p>
+            </div>
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+                <p class="pdf-paragraph">Absent Days <span style="font-size: 12px;">(অনুপস্থিতি)</span> : </p>
+                <p class="pdf-paragraph">{{absent}}</p>
+            </div>
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+                <p class="pdf-paragraph">CL <span style="font-size: 12px;">(নৈমিত্তিক ছুটি)</span> : </p>
+                <p class="pdf-paragraph">{{cl}}</p>
+            </div>
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+                <p class="pdf-paragraph">Sick Leave <span style="font-size: 12px;">(অসুস্থতা ছুটি)</span> : </p>
+                <p class="pdf-paragraph">{{sick}}</p>
+            </div>
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+                <p class="pdf-paragraph">Earn Leave <span style="font-size: 12px;">(অর্জিত ছুটি)</span> : </p>
+                <p class="pdf-paragraph">{{earn}}</p>
+            </div>
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+                <p class="pdf-paragraph">Maternity Leave <span style="font-size: 12px;">(মাতৃকালীন ছুটি)</span> : </p>
+                <p class="pdf-paragraph">{{maternity}}</p>
+            </div>
+        </div>
+        <div style="width: 40%;">
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+            <p class="pdf-paragraph">OT Hours <span style="font-size: 12px;">(অতিরিক্ত কর্ম ঘন্টা)</span> : </p>
+            <p class="pdf-paragraph">{{ot_hours}}</p>
+        </div>
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+            <p class="pdf-paragraph">OT Rate <span style="font-size: 12px;">(অতিরিক্ত কাজের মজুরি হার)</span> : </p>
+            <p class="pdf-paragraph">{{ot_rate}}</p>
+        </div>
+        <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid black; border-top: 2px solid black;">
+            <p class="pdf-paragraph">OT Amount <span style="font-size: 12px;">(অতিরিক্ত কাজের মজুরি)</span> : </p>
+            <p class="pdf-paragraph">{{ot_amount}}</p>
+        </div>
+        <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid black; margin-top: 6px; ">
+            <p class="pdf-paragraph">Deduction <span style="font-size: 12px;">(কর্তন)</span> : </p>
+        </div>
+        <div style="display: flex; align-items: center; justify-content: space-between; ">
+            <p class="pdf-paragraph">Advanced <span style="font-size: 12px;">(অগ্রিম)</span> : </p>
+            <p class="pdf-paragraph">{{advanced}}</p>
+        </div>
+        <div style="display: flex; align-items: center; justify-content: space-between; ">
+            <p class="pdf-paragraph">Absenteeism <span style="font-size: 12px;">(অনুপস্থিতি কর্তন)</span> : </p>
+            <p class="pdf-paragraph">{{absenteeism}}</p>
+        </div>
+        <div style="display: flex; align-items: center; justify-content: space-between; ">
+            <p class="pdf-paragraph">Loan <span style="font-size: 12px;">(ঋণ)</span> : </p>
+            <p class="pdf-paragraph">{{loan}}</p>
+        </div>
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+            <p class="pdf-paragraph">PF <span style="font-size: 12px;">(পিএফ)</span> : </p>
+            <p class="pdf-paragraph">{{pf}}</p>
+        </div>
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+            <p class="pdf-paragraph">Others Deduction <span style="font-size: 12px;">(অন্যান্য কর্তন)</span> : </p>
+            <p class="pdf-paragraph">{{others}}</p>
+        </div>
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+            <p class="pdf-paragraph">Income Tax <span style="font-size: 12px;">(ট্যাক্স কর্তন)</span> : </p>
+            <p class="pdf-paragraph">{{tax}}</p>
+        </div>
+        <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid black; border-top: 2px solid black;">
+            <p class="pdf-paragraph">Net Payable <span style="font-size: 12px;">(মোট প্রাপ্য মজুরি)</span> : </p>
+            <p class="pdf-paragraph">{{payable}}</p>
+        </div>
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+            <p class="pdf-paragraph">Account/MFS No.  : </p>
+            <p class="pdf-paragraph">{{account}}</p>
+        </div>
+        <div style="display: flex; align-items: center; justify-content: flex-end; margin-top: 20px;">
+            <div style="border-top: 2px solid black; width: 50%; padding: 5px 0px;">
+                <p style="text-align: center; font-size: 12px;">কতৃপক্ষের স্বাক্ষর </p>
+            </div>
+            
+        </div>
+    </div>
+    </div>
+    <div style="margin: 18px 0px; border:2px dotted black;"></div>
+     <div style="text-align: center; line-height: 24px; border-bottom: 2px solid black; padding: 6px 0px;">
+        <p style="font-weight: bold; font-size: 16px;">আরপাক ট্রিমস এন্ড প্যাকেজিং লিমিটেড</p>
+        <p style="font-size: 12px;">প্লট  # ৩০৪৫-৪৪, বিনোদপুর, সদর, নোয়াখালী-৩৮০০, বাংলাদেশ</p>
+        <p style="font-size: 12px;">মজুরি রশিদ ({{salaryDate}})</p>
+    </div>
+    <div style="display: flex; justify-content: space-between; padding: 2px 30px; line-height: 24px; border-bottom: 2px solid black;">
+        <div style="width: 40%;">
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+                <p class="pdf-paragraph">Name <span style="font-size: 12px;">(নাম)</span> : </p>
+                <p class="pdf-paragraph">{{name}}</p>
+            </div>
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+                <p class="pdf-paragraph">ID No. <span style="font-size: 12px;">(আইডি)</span> : </p>
+                <p class="pdf-paragraph">{{id}}</p>
+            </div>
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+                <p class="pdf-paragraph">Designation <span style="font-size: 10px">(পদবি)</span> : </p>
+                <p class="pdf-paragraph">{{designation}} ({{department}})</p>
+            </div>
+        </div>
+        <div style="width: 40%;">
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+                <p class="pdf-paragraph">Join Date <span style="font-size: 12px;">(যোগদানের তারিখ)</span> : </p>
+                <p class="pdf-paragraph">{{joinDate}}</p>
+            </div>
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+                <p class="pdf-paragraph">Grade <span style="font-size: 12px;">(গ্রেড)</span> : </p>
+                <p class="pdf-paragraph">{{grade}}</p>
+            </div>
+             <div style="display: flex; align-items: center; justify-content: space-between;">
+                <p class="pdf-paragraph">Department <span style="font-size: 12px;">(বিভাগ)</span> : </p>
+                <p class="pdf-paragraph">{{category}}</p>
+            </div>
+        </div>
+    </div>
+    <div  style="padding: 2px 30px; display: flex; justify-content: space-between; line-height: 24px;">
+        <div style="width: 40%;">
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+                <p class="pdf-paragraph">Basic Salary <span style="font-size: 12px;">(মূল বেতন)</span> : </p>
+                <p class="pdf-paragraph">{{basic}}</p>
+            </div>
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+                <p class="pdf-paragraph">Home Rent <span style="font-size: 12px;">(বাড়ি ভাড়া)</span> : </p>
+                <p class="pdf-paragraph">{{home}}</p>
+            </div>
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+                <p class="pdf-paragraph">Medical Allowence <span style="font-size: 12px;">(চিকিৎসা ভাতা)</span> : </p>
+                <p class="pdf-paragraph">{{medical}}</p>
+            </div>
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+                <p class="pdf-paragraph">Conveyance Allowence <span style="font-size: 12px;">(যাতায়াত ভাতা)</span> : </p>
+                <p class="pdf-paragraph">{{conveyance}}</p>
+            </div>
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+                <p class="pdf-paragraph">Food Allowence <span style="font-size: 12px;">(খাদ্য ভাতা)</span> : </p>
+                <p class="pdf-paragraph">{{food}}</p>
+            </div>
+            <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid black; border-top: 2px solid black;">
+                <p class="pdf-paragraph">Gross Wages <span style="font-size: 12px;">(মোট মজুরি)</span> : </p>
+                <p class="pdf-paragraph">{{gross}}</p>
+            </div>
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+                <p class="pdf-paragraph">Special Allowence <span style="font-size: 12px;">(বিশেষ ভাতা)</span> : </p>
+                <p class="pdf-paragraph">{{special}}</p>
+            </div>
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+                <p class="pdf-paragraph">Present Days <span style="font-size: 12px;">(উপস্থিতি)</span> : </p>
+                <p class="pdf-paragraph">{{present}}</p>
+            </div>
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+                <p class="pdf-paragraph">Weekend Days <span style="font-size: 12px;">(সাপ্তাহিক ছুটি)</span> : </p>
+                <p class="pdf-paragraph">{{weekend}}</p>
+            </div>
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+                <p class="pdf-paragraph">Holidays <span style="font-size: 12px;">(সরকারী ছুটি)</span> : </p>
+                <p class="pdf-paragraph">{{holidays}}</p>
+            </div>
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+                <p class="pdf-paragraph">Absent Days <span style="font-size: 12px;">(অনুপস্থিতি)</span> : </p>
+                <p class="pdf-paragraph">{{absent}}</p>
+            </div>
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+                <p class="pdf-paragraph">CL <span style="font-size: 12px;">(নৈমিত্তিক ছুটি)</span> : </p>
+                <p class="pdf-paragraph">{{cl}}</p>
+            </div>
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+                <p class="pdf-paragraph">Sick Leave <span style="font-size: 12px;">(অসুস্থতা ছুটি)</span> : </p>
+                <p class="pdf-paragraph">{{sick}}</p>
+            </div>
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+                <p class="pdf-paragraph">Earn Leave <span style="font-size: 12px;">(অর্জিত ছুটি)</span> : </p>
+                <p class="pdf-paragraph">{{earn}}</p>
+            </div>
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+                <p class="pdf-paragraph">Maternity Leave <span style="font-size: 12px;">(মাতৃকালীন ছুটি)</span> : </p>
+                <p class="pdf-paragraph">{{maternity}}</p>
+            </div>
+        </div>
+        <div style="width: 40%;">
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+            <p class="pdf-paragraph">OT Hours <span style="font-size: 12px;">(অতিরিক্ত কর্ম ঘন্টা)</span> : </p>
+            <p class="pdf-paragraph">{{ot_hours}}</p>
+        </div>
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+            <p class="pdf-paragraph">OT Rate <span style="font-size: 12px;">(অতিরিক্ত কাজের মজুরি হার)</span> : </p>
+            <p class="pdf-paragraph">{{ot_rate}}</p>
+        </div>
+        <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid black; border-top: 2px solid black;">
+            <p class="pdf-paragraph">OT Amount <span style="font-size: 12px;">(অতিরিক্ত কাজের মজুরি)</span> : </p>
+            <p class="pdf-paragraph">{{ot_amount}}</p>
+        </div>
+        <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid black; margin-top: 6px; ">
+            <p class="pdf-paragraph">Deduction <span style="font-size: 12px;">(কর্তন)</span> : </p>
+        </div>
+        <div style="display: flex; align-items: center; justify-content: space-between; ">
+            <p class="pdf-paragraph">Advanced <span style="font-size: 12px;">(অগ্রিম)</span> : </p>
+            <p class="pdf-paragraph">{{advanced}}</p>
+        </div>
+        <div style="display: flex; align-items: center; justify-content: space-between; ">
+            <p class="pdf-paragraph">Absenteeism <span style="font-size: 12px;">(অনুপস্থিতি কর্তন)</span> : </p>
+            <p class="pdf-paragraph">{{absenteeism}}</p>
+        </div>
+        <div style="display: flex; align-items: center; justify-content: space-between; ">
+            <p class="pdf-paragraph">Loan <span style="font-size: 12px;">(ঋণ)</span> : </p>
+            <p class="pdf-paragraph">{{loan}}</p>
+        </div>
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+            <p class="pdf-paragraph">PF <span style="font-size: 12px;">(পিএফ)</span> : </p>
+            <p class="pdf-paragraph">{{pf}}</p>
+        </div>
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+            <p class="pdf-paragraph">Others Deduction <span style="font-size: 12px;">(অন্যান্য কর্তন)</span> : </p>
+            <p class="pdf-paragraph">{{others}}</p>
+        </div>
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+            <p class="pdf-paragraph">Income Tax <span style="font-size: 12px;">(ট্যাক্স কর্তন)</span> : </p>
+            <p class="pdf-paragraph">{{tax}}</p>
+        </div>
+        <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid black; border-top: 2px solid black;">
+            <p class="pdf-paragraph">Net Payable <span style="font-size: 12px;">(মোট প্রাপ্য মজুরি)</span> : </p>
+            <p class="pdf-paragraph">{{payable}}</p>
+        </div>
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+            <p class="pdf-paragraph">Account/MFS No.  : </p>
+            <p class="pdf-paragraph">{{account}}</p>
+        </div>
+        <div style="display: flex; align-items: center; justify-content: flex-end; margin-top: 20px;">
+            <div style="border-top: 2px solid black; width: 50%; padding: 5px 0px;">
+                <p style="text-align: center; font-size: 12px;">কতৃপক্ষের স্বাক্ষর </p>
+            </div>
+            
+        </div>
+    </div>
+    </div>
+    
+</body>
+</html>

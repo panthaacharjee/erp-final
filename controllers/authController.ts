@@ -47,13 +47,16 @@ exports.registerEmployee = catchAsyncError(async (req:Request, res:Response, nex
       medical,
       conveyance,
       food,
-      special
+      grade,
+      special,
+      mainSalary
     }:{
         userName:string,
         password:string,
         id:string,
         name:string, 
         salary:number,
+        grade:string,
         joinDate:Date,
         section:string,
         category:string,
@@ -82,7 +85,8 @@ exports.registerEmployee = catchAsyncError(async (req:Request, res:Response, nex
         medical:number,
         conveyance:number,
         food:number,
-        special:number
+        special:number,
+        mainSalary:number,
     } = req.body;
 
 
@@ -91,6 +95,7 @@ exports.registerEmployee = catchAsyncError(async (req:Request, res:Response, nex
         return next(ErrorHandler("NAME IS REQUIRED", 404, res, next))
       }
     }
+
     const userIdProvider = (props:number)=>{
       if(props< 10){
           return `Employee-0000${props}`
@@ -104,11 +109,14 @@ exports.registerEmployee = catchAsyncError(async (req:Request, res:Response, nex
           return `Employee-${props}`
       }
     }
+
     const user = await User.findOne({employeeId:id})
     if(user){
         const updateUser = await User.findByIdAndUpdate(user._id,{
               name,
+              mainSalary,
               joinDate,
+              grade,
               section,
               category,
               designation,
@@ -153,10 +161,12 @@ exports.registerEmployee = catchAsyncError(async (req:Request, res:Response, nex
           runValidators: true,
           useFindAndModify: false,
         })
+        const users = await User.find({account:"Regular"})
         res.status(200).json({
               success:true,
               message:"SUCCESSFULLY EMPLOYEE UPDATE",
-              user: updateUser
+              user: updateUser,
+              users:users
         })
     }else{
       if(id===''){
@@ -179,6 +189,7 @@ exports.registerEmployee = catchAsyncError(async (req:Request, res:Response, nex
               name,
               joinDate,
               section,
+              grade,
               category,
               designation,
               department,
@@ -205,24 +216,10 @@ exports.registerEmployee = catchAsyncError(async (req:Request, res:Response, nex
         next(ErrorHandler("PLEASER ENTER VALID ID NUMBER OR new", 500, res, next))
       }
     }  
-
-    //  if(!userName || !password){
-    //   return next(ErrorHandler("USERNAME OR PASSWORD REQUERED", 400, res, next))
-    //  }
-
-    // const userByEmail = await User.findOne({ userName }).catch();
-    // if (userByEmail) {
-    //   return next(ErrorHandler("THIS USER ALREADY EXISTS", 400, res, next))
-    // }
-
-    // const hashingPassword = await hashPassword(password)
     
     
 
-    res.status(200).json({
-      success: true,
-      message:"SUCCESSFULLY EMPLOYEE REGISTERED",
-    })
+
   });
 
 

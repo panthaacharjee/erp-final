@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Information</title>
+    <style>
+    /* Define page size and margins */
+    @page {
+      size: A4;
+      margin: 0mm 5mm;
+    }
+    
+    /* Force page breaks after each section */
+    .page-break {
+      page-break-after: always;
+    }
+    
+    /* Last page shouldn't have a page break */
+    .page-break:last-child {
+      page-break-after: auto;
+    }
+    
+    /* Style for each page content */
+    .page-content {
+      height: 100%;
+      /* padding: 20px; */
+    }
+
+    .box{
+        display: flex;
+        align-items: center;
+    }
+    .box-logo{
+        width: 15%;
+    }
+    .box-logo > p{
+        font-size: 24px;
+        font-weight: bold;
+        text-transform: uppercase;
+        /* padding: 0px 18px; */
+    }
+    .box-header-content{
+        background-color: rgb(241, 233, 233);
+        width: 85%;
+        text-align:center;
+        font-size: 16px;
+        font-weight: bold;
+    }
+    .title-box{
+        border:2px solid black;
+        text-align: center;
+        padding: 1px 0px;
+    }
+
+    /* ID Card */
+    .id-card-container{
+        border: 2px solid black;
+        margin-top: 2px;
+        margin-bottom: 20px;
+    }
+
+    
+    .id-card-box{
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-bottom: 2px solid black;
+    }
+    .id-card{
+        display: flex;
+        align-items: center;
+        margin-left: 10px;
+    }
+    .id-card > label{
+        font-size: 16px;
+    }
+    .id-card>p{
+        font-size: 20px;
+    }
+    .dot-line{
+        margin-top: 10px;
+        border: 2px dotted black;
+        
+    }
+
+  </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Page 1 -->
+  <div class="page-content">
+    <div class="box">
+        <div class="box-logo">
+            <p>Erpac</p>
+        </div>
+        <div class="box-header-content">
+            <p>Plot # 2083-2085, Binodpur, Maijdee, Sadar, Noakhali-3800, Bangladesh</p>
+        </div>
+    </div>
+    <div class="title-box">
+        <p style="font-weight: bold;">Temporary Identity Card</p>
+    </div>
+    <p style="text-align: center;">(First Page)</p>
+    <div class="id-card-container" style="padding:0px 20px; line-height: 5px;">
+            <div class="id-card-box">
+                <div class="id-card">
+                    <label>ID Card No:</label>
+                    <p style="text-decoration: dotted; font-size: 16px; margin-left: 5px;">{{title}}</p>
+                </div>
+                <div class="id-card">
+                    <label>Issue Date</label>
+                    <p>...................................</p>
+                </div>
+            </div>
+            <p>Institution/Factory Name : <span>ERPAC GROUP LIMITED</span></p>
+            <p>Employee Name: <span>{{name}}</span></p>
+            <div>
+                <p>Designation: {{designation}}</p>
+                <p>Work Type : {{work}}</p>
+            </div>
+            <p>Section/Department : {{section}}</p>
+            <p>Join Date : {{join}}</p>
+            <div style="display: flex; justify-content: space-between;">
+                <div>
+                    <p>................................</p>
+                    <p>Employee Signature</p>
+                </div>
+                <div>
+                    <p>......................</p>
+                    <p>Owner/Admin</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <p style="text-align: center;">(Second Page)</p>
+    <div style="display: flex; justify-content: space-between; align-items: center; border: 2px solid black; padding: 0px 20px; line-height: 5px;">
+        <div style="border-right: 2px solid black; width: 60%;">
+            <p>Expired: ...............................</p>
+            <p style="line-height: 15px;">Factory Loaction: <span>Plot # 2083-2085, Binodpur, Maijdee, Sadar, Noakhali-3800, Bangladesh</span></p>
+            <!-- <p>Phone No. : <span>{{phone}}</span></p> -->
+            <p>Telephone No: +8801852456975</p>
+            <p>If you found it, return to</p>
+        </div>
+         <div style="width: 40%; padding-left: 20px;">
+            <p>Blood Group: {{blood}}</p>
+            <p style="line-height: 15px;">Address: <span>{{address}}</span></p>
+            <!-- <p>Phone No. : <span>{{phone}}</span></p> -->
+            <p>Emergency No: <span>{{phone}}</span></p>
+            <p>NID No.: {{nid}}</p>
+        </div>
+    </div>
+  </div>
+  <!-- <div class="page-break"></div> -->
+
+  <!-- Page 2 -->
+  <!-- <div class="page-content">
+    <h1>Page 2 Content</h1>
+    <p>Your content here...</p>
+  </div> -->
+  <div class="page-break"></div>
+</body>
+</html>

@@ -1,7 +1,6 @@
 import {Schema, model} from "mongoose"
 import IUser from "./UserInterface"
 import ILoginHistory from "./LoginHistoryInterface";
-import Counter from "./EmployeeSerial";
 
 
 const LoginHistorySchema = new Schema<ILoginHistory>({
@@ -19,6 +18,12 @@ const userSchema = new Schema<IUser>({
     name: {
         type: String,
         required:true
+    },
+    mainSalary:{
+        type:Number,
+    },
+    grade:{
+        type:String,
     },
     email: {
         type: String,
@@ -130,5 +135,5 @@ const userSchema = new Schema<IUser>({
 
 
 
-const user = model<IUser>('User', userSchema)
+const user = model<IUser>('user', userSchema)
 export default  user

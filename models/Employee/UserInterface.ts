@@ -5,6 +5,8 @@ interface IUser extends Document {
     employeeId:string,
     name: string,
     userName:string,
+    mainSalary:number,
+    grade:string,
     email:string,
     account:string,
     authentication:{
