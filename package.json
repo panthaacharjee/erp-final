@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "npm install --build-from-source && tsc",
+    "build": "npm install --legacy-peer-deps --build-from-source && tsc",
     "start": "node dist/index.js",
     "dev": "nodemon index.ts"
   },
