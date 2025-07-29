@@ -19,7 +19,7 @@ app.use(express.json({ limit: "50mb" }));
 const corsOptions = {
   origin: [
     'http://localhost:3000', // Your local development
-    'https://erp-final-fontend-vh8z.vercel.app' // Your production frontend
+    'https://erpac-pvt-ltd.vercel.app', // Your production frontend
   ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
