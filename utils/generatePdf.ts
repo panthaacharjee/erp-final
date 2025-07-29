@@ -6,7 +6,6 @@ const generatePDFFromUrl = async(options:any)=> {
     html,
     outputPath,
     format = 'A4',
-    landscape = false
   } = options;
   // console.log(options)
    const browser = await puppeteer.launch({
@@ -20,11 +19,7 @@ const generatePDFFromUrl = async(options:any)=> {
   });
   try{
     const page = await browser.newPage();
-    await page.setViewport({
-      width: landscape ? 1024 : 768,
-      height: landscape ? 768 : 1024,
-      deviceScaleFactor: 1 // Higher quality
-    });
+    
 
     await page.setContent(html, {
       waitUntil: ['load', 'networkidle0', 'domcontentloaded'],
@@ -42,7 +37,6 @@ const generatePDFFromUrl = async(options:any)=> {
     const pdfOptions = {
       path: outputPath,
       format,
-      landscape,
       printBackground: true,
       displayHeaderFooter: false,
       preferCSSPageSize: true
