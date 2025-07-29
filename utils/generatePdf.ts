@@ -23,7 +23,7 @@ const generatePDFFromUrl = async(options:any)=> {
     await page.setViewport({
       width: landscape ? 1024 : 768,
       height: landscape ? 768 : 1024,
-      deviceScaleFactor: 2 // Higher quality
+      deviceScaleFactor: 1 // Higher quality
     });
 
     await page.setContent(html, {
@@ -36,7 +36,7 @@ const generatePDFFromUrl = async(options:any)=> {
 
     await Promise.all([
       page.evaluateHandle('document.fonts.ready'),
-      page.waitForNetworkIdle({ idleTime: 1000 }) // Additional network idle wait
+      page.waitForNetworkIdle({ idleTime: 700 }) // Additional network idle wait
     ]);
 
     const pdfOptions = {
