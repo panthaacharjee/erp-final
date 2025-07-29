@@ -6,28 +6,29 @@ const generatePDFFromUrl = async(options:any)=> {
     html,
     outputPath,
     format = 'A4',
+    landscape = false
   } = options;
   // console.log(options)
    const browser = await puppeteer.launch({
     headless: 'new',
-    args: [
-      '--no-sandbox',
-      '--disable-setuid-sandbox',
-      '--disable-dev-shm-usage', // Important for low-memory environments
-      '--single-process', // Helps with memory constraints
-       '--no-zygote',
-      '--disable-gpu'
-    ],
-    executablePath: process.env.PUPPETEER_EXECUTABLE_PATH  || undefined,
-    timeout: 30000
+     args: [
+    '--no-sandbox',
+    '--disable-setuid-sandbox',
+    '--disable-dev-shm-usage',
+    // '--single-process'
+  ],
   });
   try{
     const page = await browser.newPage();
-    
+    await page.setViewport({
+      width: landscape ? 1024 : 768,
+      height: landscape ? 768 : 1024,
+      deviceScaleFactor: 2 // Higher quality
+    });
 
     await page.setContent(html, {
       waitUntil: ['load', 'networkidle0', 'domcontentloaded'],
-      timeout: 60000
+      timeout: 30000
     });
 
     // Wait for fonts to load
@@ -41,6 +42,7 @@ const generatePDFFromUrl = async(options:any)=> {
     const pdfOptions = {
       path: outputPath,
       format,
+      landscape,
       printBackground: true,
       displayHeaderFooter: false,
       preferCSSPageSize: true
