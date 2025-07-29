@@ -6,7 +6,6 @@ const generatePDFFromUrl = async(options:any)=> {
     html,
     outputPath,
     format = 'A4',
-    landscape = false
   } = options;
   // console.log(options)
    const browser = await puppeteer.launch({
@@ -15,17 +14,16 @@ const generatePDFFromUrl = async(options:any)=> {
       '--no-sandbox',
       '--disable-setuid-sandbox',
       '--disable-dev-shm-usage', // Important for low-memory environments
-      '--single-process' // Helps with memory constraints
+      '--single-process', // Helps with memory constraints
+       '--no-zygote',
+      '--disable-gpu'
     ],
-    executablePath: process.env.PUPPETEER_EXECUTABLE_PATH // For Render.com
+    executablePath: process.env.PUPPETEER_EXECUTABLE_PATH  || undefined,
+    timeout: 30000
   });
   try{
     const page = await browser.newPage();
-    await page.setViewport({
-      width: landscape ? 1024 : 768,
-      height: landscape ? 768 : 1024,
-      deviceScaleFactor: 1 // Higher quality
-    });
+    
 
     await page.setContent(html, {
       waitUntil: ['load', 'networkidle0', 'domcontentloaded'],
@@ -43,7 +41,6 @@ const generatePDFFromUrl = async(options:any)=> {
     const pdfOptions = {
       path: outputPath,
       format,
-      landscape,
       printBackground: true,
       displayHeaderFooter: false,
       preferCSSPageSize: true

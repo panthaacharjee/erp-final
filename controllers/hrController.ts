@@ -66,11 +66,6 @@ exports.employeeDetails = catchAsyncError(async (req:Request, res:Response, next
 /* =====================================================================================================*/
 /* ============================= ALL EMPLOYEE (get) (/all/user) ================================= */
 /* ===================================================================================================== */
-// interface EmployeeFilterQuery {
-//   category?: string | string[];
-//   employee?: string | string[];
-//   name?: string | string[];
-// }
 exports.allEmployee = catchAsyncError(async (req:Request, res:Response, next:NextFunction) => {
   const {nameFilter, idFilter, categoryFilter} = req.query
   

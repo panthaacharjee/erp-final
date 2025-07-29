@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: pdf-service
+    env: node
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: PUPPETEER_SKIP_CHROMIUM_DOWNLOAD
+        value: true
+      - key: PUPPETEER_EXECUTABLE_PATH
+        value: /usr/bin/chromium-browser
+    plan: starter # Minimum required (512MB memory)
