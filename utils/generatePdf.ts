@@ -10,20 +10,21 @@ const generatePDFFromUrl = async(options:any)=> {
   // console.log(options)
    const browser = await puppeteer.launch({
     headless: 'new',
-     args: [
-    '--no-sandbox',
-    '--disable-setuid-sandbox',
-    '--disable-dev-shm-usage',
-    // '--single-process'
-  ],
+    args: [
+      '--no-sandbox',
+      '--disable-setuid-sandbox',
+      '--disable-dev-shm-usage',
+      // '--single-process'
+    ],
+    timeout: 30000
   });
   try{
     const page = await browser.newPage();
-    
+   
 
     await page.setContent(html, {
       waitUntil: ['load', 'networkidle0', 'domcontentloaded'],
-      timeout: 30000
+      timeout: 60000
     });
 
     // Wait for fonts to load
@@ -31,7 +32,7 @@ const generatePDFFromUrl = async(options:any)=> {
 
     await Promise.all([
       page.evaluateHandle('document.fonts.ready'),
-      page.waitForNetworkIdle({ idleTime: 700 }) // Additional network idle wait
+      page.waitForNetworkIdle({ idleTime: 1000 }) // Additional network idle wait
     ]);
 
     const pdfOptions = {
