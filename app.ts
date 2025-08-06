@@ -36,9 +36,11 @@ app.use(cookieParser());
 
 const user = require("./routes/authRoute")
 const hr = require("./routes/hrRoutes")
+const business = require("./routes/bussinessRoute")
 
 app.use("/api/v1", user)
 app.use("/api/v1", hr)
+app.use("/api/v1", business)
 
 app.use(errorMiddleware)
 
