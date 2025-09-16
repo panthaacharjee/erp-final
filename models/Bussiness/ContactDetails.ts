@@ -1,17 +1,18 @@
 import { Document, Schema, Types, model } from "mongoose";
 
 
-interface IBuyer extends Document {
+export interface IBuyer extends Document {
     title: string;
     code:string;
     address:string;
-    vendor: Types.ObjectId[];
+    vendor: Types.ObjectId[] ;
 }
 
-interface IVendor extends Document {
+export interface IVendor extends Document {
     title: string;
     code: string;
     contact: Types.ObjectId[];
+    program: Types.ObjectId[]; 
 }
 
 interface IContactPerson extends Document {
@@ -25,7 +26,6 @@ const BuyerSchema = new Schema<IBuyer>({
     title: {
         type:String,
         required:true,
-        unique:true
     },
     code:{
         type:String,
@@ -45,8 +45,6 @@ const BuyerSchema = new Schema<IBuyer>({
 const VendorSchema = new Schema<IVendor>({
     title: {
         type:String,
-        required:true,
-        unique:true,
     },
     code:{
         type:String,
@@ -55,6 +53,12 @@ const VendorSchema = new Schema<IVendor>({
         {
             type: Schema.Types.ObjectId,
             ref: "ContactPerson" 
+        }
+    ],
+    program:[
+        {
+            type: Schema.Types.ObjectId,
+            ref:"program"
         }
     ]
 });
