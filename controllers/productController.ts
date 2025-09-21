@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import ErrorHandler from "../utils/errorhandler";
 const catchAsyncError = require("../middleware/catchAsyncError");
-import Product from "../models/Product/ProductModel";
+import { Product, Process } from "../models/Product/ProductModel";
 import ProductCounter from "../models/Product/ProductSerial";
 
 exports.createProduct = catchAsyncError(
@@ -166,10 +166,14 @@ exports.createProduct = catchAsyncError(
           useFindAndModify: false,
         }
       );
+
+      const updatedProduct = await Product.findById(
+        updateProduct?._id
+      ).populate("process");
       res.status(200).json({
         success: true,
-        message: "SUCCESSFULLY EMPLOYEE UPDATE",
-        product: updateProduct,
+        message: "SUCCESSFULLY PRODUCT UPDATE",
+        product: updatedProduct,
       });
     } else {
       if (p_id === "") {
@@ -240,17 +244,22 @@ exports.createProduct = catchAsyncError(
           },
         });
 
+        const productData = await Product.findById(product._id).populate(
+          "process"
+        );
         res.status(200).json({
           success: true,
-          message: "SUCCESSFULLY EMPLOYEE REGISTERED",
-          product,
+          message: "SUCCESSFULLY PRODUCT REGISTERED",
+          product: productData,
         });
       } else if (!isNaN(parseInt(p_id)) && isFinite(Number(p_id)) === false) {
         next(ErrorHandler("PLEASE ENTER VALID NUMBER or New", 404, res, next));
       } else if (!isNaN(parseInt(p_id)) && isFinite(Number(p_id)) === true) {
         let productId = productIdProvider(parseInt(p_id));
 
-        const product = await Product.findOne({ p_id: productId });
+        const product = await Product.findOne({ p_id: productId }).populate(
+          "process"
+        );
         if (!product) {
           next(ErrorHandler("PRODUCT NOT FOUND", 500, res, next));
         }
@@ -265,5 +274,106 @@ exports.createProduct = catchAsyncError(
         );
       }
     }
+  }
+);
+
+exports.createProductProcess = catchAsyncError(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const {
+      product,
+      category,
+      process,
+      spec,
+      serial,
+      value,
+    }: {
+      product: string;
+      category: string;
+      process: string;
+      spec: string;
+      serial: string;
+      value: string;
+    } = req.body;
+
+    if (product === "") {
+      return next(ErrorHandler("REFRESH", 200, res, next));
+    }
+    if (process === "") {
+      return next(ErrorHandler("PROCESS NOT FOUND", 200, res, next));
+    }
+    if (spec === "") {
+      return next(ErrorHandler("SPECIFICATION NOT FOUND", 200, res, next));
+    }
+    if (value === "") {
+      return next(ErrorHandler("PROCESS VALUE NOT FOUND", 200, res, next));
+    }
+    const findProduct = await Product.findOne({ p_id: product }).populate(
+      "process"
+    );
+    if (!findProduct) {
+      return next(ErrorHandler("PRODUCT NOT FOUND", 200, res, next));
+    }
+    const processFind = findProduct?.process.find(
+      (val: any) => val.name === process
+    );
+    if (processFind) {
+      const process = await Process.findById(processFind?._id);
+      const data = {
+        name: spec,
+        item: serial,
+        value: value,
+      };
+      if (!process) {
+        return next(
+          ErrorHandler(
+            "PROCESS NOT FOUND CALL THE ADMINISTRATION",
+            200,
+            res,
+            next
+          )
+        );
+      }
+      await process.spec.push(data);
+      await process.save();
+      const freshProduct = await Product.findById(findProduct._id).populate(
+        "process"
+      );
+      res.status(200).json({
+        success: true,
+        message: "PROCESS UPDATED",
+        product: freshProduct,
+      });
+    } else {
+      const data = {
+        name: spec,
+        item: serial,
+        value: value,
+      };
+      const newProcess = await Process.create({
+        name: process,
+      });
+      await newProcess.spec.push(data);
+      await newProcess.save();
+      await findProduct.process.push(newProcess?._id);
+      await findProduct.save();
+      const freshProduct = await Product.findById(findProduct._id).populate(
+        "process"
+      );
+      res.status(200).json({
+        success: true,
+        message: "PROCESS UPDATED",
+        product: freshProduct,
+      });
+    }
+  }
+);
+
+exports.processSequenceChange = catchAsyncError(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { product, element } = req.body;
+    res.status(200).json({
+      success: true,
+      message: "SUCCESS",
+    });
   }
 );

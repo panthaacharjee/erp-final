@@ -1,12 +1,22 @@
 import { Document, model, Schema, Types } from "mongoose";
 
+export interface productProcess {
+  name: string;
+  spec: [
+    {
+      name: string;
+      item: string;
+      value: string;
+    }
+  ];
+}
 export interface productDetails {
   p_id: string;
   season: string;
   status: boolean;
   recieve: Date;
 
-  process: Types.ObjectId[] | productProcess;
+  process: Types.ObjectId[];
 
   contactDetails: {
     buyer: string;
@@ -64,22 +74,18 @@ export interface productDetails {
   };
 }
 
-export interface productProcess {
-  serial: string;
-  name: string;
+const processSchema = new Schema<productProcess>({
+  name: {
+    type: String,
+  },
   spec: [
     {
-      name: string;
-      value: number;
-      serial: [
-        {
-          name: string;
-          value: string;
-        }
-      ];
-    }
-  ];
-}
+      name: String,
+      item: String,
+      value: String,
+    },
+  ],
+});
 
 const productSchema = new Schema<productDetails>({
   p_id: {
@@ -99,6 +105,7 @@ const productSchema = new Schema<productDetails>({
   process: [
     {
       type: Schema.Types.ObjectId,
+      ref: "process",
     },
   ],
 
@@ -156,4 +163,5 @@ const productSchema = new Schema<productDetails>({
   },
 });
 
-export default model<productDetails>("product", productSchema);
+export const Process = model<productProcess>("process", processSchema);
+export const Product = model<productDetails>("product", productSchema);
