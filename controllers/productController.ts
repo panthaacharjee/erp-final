@@ -265,7 +265,7 @@ exports.createProduct = catchAsyncError(
         }
         res.status(200).json({
           success: true,
-          message: "PRODUCT FOUND",
+          message: "",
           product,
         });
       } else {
@@ -370,10 +370,90 @@ exports.createProductProcess = catchAsyncError(
 
 exports.processSequenceChange = catchAsyncError(
   async (req: Request, res: Response, next: NextFunction) => {
-    const { product, element } = req.body;
-    res.status(200).json({
-      success: true,
-      message: "SUCCESS",
-    });
+    const { product, element, props, ind } = req.body;
+
+    const findProduct = await Product.findOne({ p_id: product }).populate(
+      "process"
+    );
+
+    if (props === "UP" && ind !== 0) {
+      await Product.findByIdAndUpdate(findProduct?._id, {
+        $pull: { process: element },
+      });
+
+      await Product.findByIdAndUpdate(findProduct?._id, {
+        $push: {
+          process: {
+            $each: [element],
+            $position: ind - 1,
+          },
+        },
+      });
+
+      const freshProduct = await Product.findById(findProduct?._id).populate(
+        "process"
+      );
+      res.status(200).json({
+        success: true,
+        message: "SUCCESS",
+        product: freshProduct,
+      });
+    }
+
+    if (
+      props === "DOWN" &&
+      ind !== (findProduct?.process && findProduct?.process.length - 1)
+    ) {
+      await Product.findByIdAndUpdate(findProduct?._id, {
+        $pull: { process: element },
+      });
+
+      await Product.findByIdAndUpdate(findProduct?._id, {
+        $push: {
+          process: {
+            $each: [element],
+            $position: ind + 2,
+          },
+        },
+      });
+
+      const freshProduct = await Product.findById(findProduct?._id).populate(
+        "process"
+      );
+      res.status(200).json({
+        success: true,
+        message: "SUCCESS",
+        product: freshProduct,
+      });
+    }
+
+    if (props === "DELETE") {
+      try {
+        const process = await Process.findById(element);
+        if (!process) {
+          return next(ErrorHandler("PROCESS NOT FOUND", 404, res, next));
+        }
+
+        await Process.findByIdAndDelete(process._id);
+
+        await Product.findByIdAndUpdate(
+          findProduct?._id,
+          { $pull: { processes: process._id } },
+          { new: true }
+        );
+
+        const freshProduct = await Product.findById(findProduct?._id).populate(
+          "process"
+        );
+
+        res.status(200).json({
+          success: true,
+          message: "Process deleted successfully",
+          product: freshProduct,
+        });
+      } catch (error) {
+        return next(ErrorHandler("Error deleting process", 500, res, next));
+      }
+    }
   }
 );
