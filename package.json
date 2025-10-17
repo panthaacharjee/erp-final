@@ -16,6 +16,7 @@
     "@types/mongoose-paginate-v2": "^1.6.4",
     "bcryptjs": "^3.0.2",
     "body-parser": "^2.2.0",
+    "cloudinary": "^1.41.3",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
@@ -27,6 +28,8 @@
     "mongoose": "^8.16.4",
     "mongoose-auto-increment": "^5.0.1",
     "mongoose-paginate-v2": "^1.9.1",
+    "multer": "^2.0.2",
+    "multer-storage-cloudinary": "^4.0.0",
     "pdf-merger-js": "^5.1.2",
     "puppeteer": "^24.11.2"
   },

@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      /* Define page size and margins */
+      @page {
+        size: A4;
+        margin: 0mm 5mm;
+      }
+
+      /* Force page breaks after each section */
+      .page-break {
+        page-break-after: always;
+      }
+
+      /* Last page shouldn't have a page break */
+      .page-break:last-child {
+        page-break-after: auto;
+      }
+
+      /* Style for each page content */
+      .page-content {
+        height: 100%;
+        padding: 10px;
+      }
+
+      .box {
+        display: flex;
+        align-items: center;
+      }
+      .box-logo {
+        width: 15%;
+      }
+      .box-logo > p {
+        font-size: 24px;
+        font-weight: bold;
+        text-transform: uppercase;
+        /* padding: 0px 18px; */
+      }
+      .box-header-content {
+        background-color: rgb(241, 233, 233);
+        width: 85%;
+        text-align: center;
+        font-size: 16px;
+        font-weight: bold;
+      }
+      .title-box {
+        border: 2px solid black;
+        text-align: center;
+        padding: 0px 0px;
+      }
+
+      /* ID Card */
+      .id-card-container {
+        border: 2px solid black;
+        margin-top: 2px;
+        margin-bottom: 20px;
+      }
+
+      .id-card-box {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-bottom: 2px solid black;
+      }
+      .id-card {
+        display: flex;
+        align-items: center;
+        margin-left: 10px;
+      }
+      .id-card > label {
+        font-size: 16px;
+      }
+      .id-card > p {
+        font-size: 20px;
+      }
+      .dot-line {
+        margin-top: 10px;
+        border: 2px dotted black;
+      }
+    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div class="page-content">
+      <div class="box">
+        <div class="box-logo">
+          <p>Erpac</p>
+        </div>
+        <div class="box-header-content">
+          <p>
+            Plot # 2083-2085, Binodpur, Maijdee, Sadar, Noakhali-3800,
+            Bangladesh
+          </p>
+        </div>
+      </div>
+      <div class="title-box">
+        <p style="font-weight: bold">Product Development</p>
+      </div>
+      <div
+        style="display: flex; justify-content: space-between; line-height: 10px"
+      >
+        <div style="width: 50%; line-height: 10px">
+          <p style="font-weight: bold">
+            <span>Product ID</span>: <span>{{ID}}</span>
+          </p>
+          <p style="font-weight: bold">
+            <span>Product Line</span>: <span>{{LINE}}</span>
+          </p>
+          <p><span>Prod. Description: </span><span>{{DESC}}</span></p>
+          <p><span>DSM / Ref. Code: </span><span>{{REF}}</span></p>
+          <p><span>Buyer Name: </span><span>{{BUYER}}</span></p>
+          <p><span>Vendor Name: </span><span>{{VENDOR}}</span></p>
+        </div>
+        <div style="width: 50%; line-height: 10px; text-align: right">
+          <p><span>Dev. Received Date</span>: <span>{{RECEIVE}}</span></p>
+          <p><span>Product Category</span>: <span>{{CATEGORY}}</span></p>
+          <p><span></span></p>
+          <p><span>Product Dimension: </span><span>{{DIMENSION}}</span></p>
+          <p><span>Contact Name: </span><span>{{CONTACT}}</span></p>
+          <p><span>CS Name: </span><span>{{CS}}</span></p>
+        </div>
+      </div>
+
+      <table
+        style="width: 100%; border: 1px solid black; border-collapse: collapse"
+      >
+        {{#each processArray}}
+        <tr>
+          <td
+            style="
+              border: 1px solid black;
+              padding: 6px;
+              width: 20%;
+              text-align: center;
+            "
+          >
+            {{this.name}}
+          </td>
+          <td style="border: 1px solid black; padding: 6px; width: 80%">
+            {{#each this.spec}}
+            <table>
+              <tr>
+                <td>{{this.name}}: {{this.item}} {{this.value}}</td>
+              </tr>
+            </table>
+            {{/each}}
+          </td>
+        </tr>
+        {{/each}}
+      </table>
+      <div style="margin-top: 5px; display: flex">
+        <div style="border: 1px solid black; padding: 8px; width: 80%">
+          <img
+            src="{{this.sample}}"
+            alt="{{this.sample}}"
+            style="height: 150px; width: 250px"
+          />
+        </div>
+        <div
+          style="
+            width: 20%;
+            border: 1px solid black;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+          "
+        >
+          <p style="transform: rotate(90deg)">Sample Image</p>
+        </div>
+      </div>
+      <div style="margin-top: 5px; display: flex">
+        <div style="border: 1px solid black; padding: 8px; width: 80%"></div>
+        <div
+          style="
+            width: 20%;
+            border: 1px solid black;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+          "
+        >
+          <p>Physical Image</p>
+        </div>
+      </div>
+      {{#if additionalContent}}
+      <div style="margin-top: 10px">
+        <!-- Additional sections here -->
+      </div>
+      {{/if}}
+    </div>
+  </body>
+</html>

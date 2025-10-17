@@ -10,22 +10,14 @@ export interface productProcess {
     }
   ];
 }
-
 export interface productDetails {
   p_id: string;
   season: string;
+  status: boolean;
   recieve: Date;
 
   process: Types.ObjectId[];
-  status: {
-    mode: String;
-    user: Types.ObjectId[];
-  };
 
-  image: {
-    public_id: string;
-    url: string;
-  };
   contactDetails: {
     buyer: string;
     vendor: string;
@@ -99,22 +91,9 @@ const productSchema = new Schema<productDetails>({
   p_id: {
     type: String,
   },
-  image: {
-    public_id: String,
-    url: String,
-  },
-
   status: {
-    mode: {
-      type: String,
-      default: "Entry Mode",
-    },
-    user: [
-      {
-        type: Schema.Types.ObjectId,
-        ref: "user",
-      },
-    ],
+    type: Boolean,
+    default: false,
   },
   season: {
     type: String,
@@ -126,7 +105,7 @@ const productSchema = new Schema<productDetails>({
   process: [
     {
       type: Schema.Types.ObjectId,
-      ref: "process",
+      ref: "sampleProcess",
     },
   ],
 
@@ -184,5 +163,11 @@ const productSchema = new Schema<productDetails>({
   },
 });
 
-export const Process = model<productProcess>("process", processSchema);
-export const Product = model<productDetails>("product", productSchema);
+export const SampleProcess = model<productProcess>(
+  "sampleProcess",
+  processSchema
+);
+export const SampleProduct = model<productDetails>(
+  "sampleProduct",
+  productSchema
+);
