@@ -382,10 +382,12 @@ exports.createProductProcess = catchAsyncError(
       const newProcess = await Process.create({
         name: process,
       });
+
       await newProcess.spec.push(data);
       await newProcess.save();
       await findProduct.process.push(newProcess?._id);
       await findProduct.save();
+
       const freshProduct = await Product.findById(findProduct._id).populate(
         "process"
       );
@@ -485,6 +487,159 @@ exports.processSequenceChange = catchAsyncError(
         return next(ErrorHandler("Error deleting process", 500, res, next));
       }
     }
+  }
+);
+
+exports.productValidation = catchAsyncError(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { id, user, mode } = req.body;
+
+    const product = await Product.findOne({ p_id: id });
+
+    if (!product) {
+      return next(ErrorHandler("CALL THE ADMINISTRATION", 400, res, next));
+    }
+
+    if (mode === "Entry Mode") {
+      await Product.findByIdAndUpdate(product._id, {
+        status: {
+          mode: "Validated",
+        },
+      });
+      await product.status.user.push(user);
+
+      const freshProduct = await Product.findById(product._id).populate(
+        "process"
+      );
+
+      res.status(200).json({
+        success: true,
+        message: "",
+        product: freshProduct,
+      });
+    } else if (mode === "Validated") {
+      await Product.findByIdAndUpdate(product._id, {
+        status: {
+          mode: "Entry Mode",
+        },
+      });
+      await product.status.user.push(user);
+
+      const freshProduct = await Product.findById(product._id).populate(
+        "process"
+      );
+
+      res.status(200).json({
+        success: true,
+        message: "",
+        product: freshProduct,
+      });
+    } else {
+      return next(ErrorHandler("CALL THE ADMINISTRATION", 400, res, next));
+    }
+  }
+);
+
+exports.productImageUpload = catchAsyncError(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { p_id, file } = req.body;
+
+    const product = await Product.findOne({ p_id: p_id });
+
+    if (!product) {
+      return next(ErrorHandler("CALL THE ADMINISTRATION", 400, res, next));
+    }
+
+    const myCloud = await cloudinary.v2.uploader.upload(file, {
+      folder: "avatars",
+      crop: "scale",
+    });
+
+    await Product.findByIdAndUpdate(product._id, {
+      image: {
+        public_id: myCloud.public_id,
+        url: myCloud.secure_url,
+      },
+    });
+
+    await product.save();
+    const freshProduct = await Product.findById(product?._id).populate(
+      "process"
+    );
+
+    res.status(200).json({
+      success: true,
+      message: "",
+      product: freshProduct,
+    });
+  }
+);
+
+exports.productDetails = catchAsyncError(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const product = await Product.findById(req.params.id)
+      .populate("process")
+      .lean();
+    // .populate({
+    //   path: "process",
+    //   populate: {
+    //     path: "spec",
+    //     options: { strictPopulate: false },
+    //   },
+    // })
+
+    if (!product) {
+      return next(ErrorHandler("PRODUCT NOT FOUND", 404, res, next));
+    }
+
+    const htmlPath = path.join(
+      __dirname,
+      "../html/product/productInformation.html"
+    );
+    const htmlContent = fs.readFileSync(htmlPath, "utf-8");
+    const template = handlebars.compile(htmlContent);
+
+    const productDimension = `${product?.dimensionDetails.measure.length} × ${
+      product?.dimensionDetails.measure.width
+    } ${product?.dimensionDetails.measure.height ? "×" : ""} ${
+      product?.dimensionDetails.measure.height
+        ? product?.dimensionDetails.measure.height
+        : ""
+    } ${product?.dimensionDetails.measure.dimension_unit}`;
+
+    const receiveDate = new Date(product?.recieve);
+    const receive = `${receiveDate.getDate()}/${
+      receiveDate.getMonth() + 1
+    }/${receiveDate.getFullYear()}`;
+
+    const data = {
+      ID: product.p_id,
+      LINE: product.product.line,
+      DESC: product.product.desc,
+      REF: product.product.ref,
+      BUYER: product.contactDetails.buyer,
+      VENDOR: product.contactDetails.vendor,
+      RECEIVE: receive,
+      CATEGORY: product.product.category,
+      DIMENSION: productDimension,
+      CONTACT: product.contactDetails.contact,
+      CS: product.contactDetails.sales,
+      processArray: product.process,
+      sample: product.image.url,
+    };
+    const html = template(data);
+
+    const pdfBuffer = await generatePDFFromUrl({
+      html: html,
+      outputPath: "report.pdf",
+    }).catch(console.error);
+
+    // Send the PDF directly as a binary response
+    res.set({
+      "Content-Type": "application/pdf",
+      "Content-Disposition": "attachment; filename=employee-details.pdf",
+    });
+    res.send(pdfBuffer);
   }
 );
 
@@ -779,7 +934,6 @@ exports.createSampleProductProcess = catchAsyncError(
       serial: string;
       value: string;
     } = req.body;
-
     if (product === "") {
       return next(ErrorHandler("REFRESH", 200, res, next));
     }
@@ -798,9 +952,11 @@ exports.createSampleProductProcess = catchAsyncError(
     if (!findProduct) {
       return next(ErrorHandler("PRODUCT NOT FOUND", 200, res, next));
     }
+
     const processFind = findProduct?.process.find(
       (val: any) => val.name === process
     );
+
     if (processFind) {
       const process = await SampleProcess.findById(processFind?._id);
       const data = {
@@ -837,10 +993,13 @@ exports.createSampleProductProcess = catchAsyncError(
       const newProcess = await SampleProcess.create({
         name: process,
       });
+
       await newProcess.spec.push(data);
       await newProcess.save();
-      await findProduct.process.push(newProcess?._id);
+
+      await findProduct.process.push(newProcess._id);
       await findProduct.save();
+
       const freshProduct = await SampleProduct.findById(
         findProduct._id
       ).populate("process");
@@ -939,25 +1098,27 @@ exports.processSampleSequenceChange = catchAsyncError(
   }
 );
 
-exports.productValidation = catchAsyncError(
+exports.sampleProductValidation = catchAsyncError(
   async (req: Request, res: Response, next: NextFunction) => {
     const { id, user, mode } = req.body;
 
-    const product = await Product.findOne({ p_id: id });
+    const product = await SampleProduct.findOne({ p_id: id });
 
     if (!product) {
       return next(ErrorHandler("CALL THE ADMINISTRATION", 400, res, next));
     }
 
+    // console.log(id, user, mode);
+
     if (mode === "Entry Mode") {
-      await Product.findByIdAndUpdate(product._id, {
+      await SampleProduct.findByIdAndUpdate(product._id, {
         status: {
           mode: "Validated",
         },
       });
       await product.status.user.push(user);
 
-      const freshProduct = await Product.findById(product._id).populate(
+      const freshProduct = await SampleProduct.findById(product._id).populate(
         "process"
       );
 
@@ -967,14 +1128,14 @@ exports.productValidation = catchAsyncError(
         product: freshProduct,
       });
     } else if (mode === "Validated") {
-      await Product.findByIdAndUpdate(product._id, {
+      await SampleProduct.findByIdAndUpdate(product._id, {
         status: {
           mode: "Entry Mode",
         },
       });
       await product.status.user.push(user);
 
-      const freshProduct = await Product.findById(product._id).populate(
+      const freshProduct = await SampleProduct.findById(product._id).populate(
         "process"
       );
 
@@ -989,11 +1150,11 @@ exports.productValidation = catchAsyncError(
   }
 );
 
-exports.productImageUpload = catchAsyncError(
+exports.sampleProductImageUpload = catchAsyncError(
   async (req: Request, res: Response, next: NextFunction) => {
     const { p_id, file } = req.body;
 
-    const product = await Product.findOne({ p_id: p_id });
+    const product = await SampleProduct.findOne({ p_id: p_id });
 
     if (!product) {
       return next(ErrorHandler("CALL THE ADMINISTRATION", 400, res, next));
@@ -1004,15 +1165,15 @@ exports.productImageUpload = catchAsyncError(
       crop: "scale",
     });
 
-    await Product.findByIdAndUpdate(product._id, {
+    await SampleProduct.findByIdAndUpdate(product._id, {
       image: {
         public_id: myCloud.public_id,
         url: myCloud.secure_url,
       },
     });
 
-    await product.save();
-    const freshProduct = await Product.findById(product?._id).populate(
+    // await product.save();
+    const freshProduct = await SampleProduct.findById(product?._id).populate(
       "process"
     );
 
@@ -1024,9 +1185,9 @@ exports.productImageUpload = catchAsyncError(
   }
 );
 
-exports.productDetails = catchAsyncError(
+exports.sampleProductDetails = catchAsyncError(
   async (req: Request, res: Response, next: NextFunction) => {
-    const product = await Product.findById(req.params.id)
+    const product = await SampleProduct.findById(req.params.id)
       .populate("process")
       .lean();
     // .populate({
