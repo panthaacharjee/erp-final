@@ -34,11 +34,13 @@ const user = require("./routes/authRoute");
 const hr = require("./routes/hrRoutes");
 const business = require("./routes/bussinessRoute");
 const product = require("./routes/productRoutes");
+const order = require("./routes/orderRoute");
 
 app.use("/api/v1", user);
 app.use("/api/v1", hr);
 app.use("/api/v1", business);
 app.use("/api/v1", product);
+app.use("/api/v1", order);
 
 app.use(errorMiddleware);
 
