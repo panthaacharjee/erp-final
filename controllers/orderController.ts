@@ -346,54 +346,291 @@ exports.orderProduct = catchAsyncError(
 
 exports.attachBooking = catchAsyncError(
   async (req: Request, res: Response, next: NextFunction) => {
-    const { orderId, file }: any = req.body;
+    try {
+      if (!req.files || Object.keys(req.files).length === 0) {
+        return res.status(400).json({
+          success: false,
+          message: "No files were uploaded.",
+        });
+      }
 
-    const order = await Order.findOne({ orderId: orderId }).select(
-      "_id,orderDate"
-    );
-    if (!order) {
-      next(ErrorHandler("ORDER NOT FOUND", 404, res, next));
-    }
+      const { orderId } = req.body;
 
-    if (!file || Object.keys(file).length === 0) {
-      return res.status(400).json({ error: "No files were uploaded." });
-    }
+      if (!orderId) {
+        return res.status(400).json({
+          success: false,
+          message: "Order ID is required.",
+        });
+      }
 
-    console.log(file, order);
+      const order = await Order.findOne({ orderId: orderId });
+      if (!order) {
+        return next(ErrorHandler("Order not found", 404, res, next));
+      }
 
-    // Validate file type
-    const allowedTypes = {
-      "application/vnd.ms-excel": "excel",
-      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet":
-        "excel",
-      "application/pdf": "pdf",
-      "image/png": "png",
-    };
+      let file: any;
 
-    const mimetype = file.mimetype as keyof typeof allowedTypes;
+      if (Array.isArray(req.files)) {
+        file = req.files[0];
+      } else {
+        file = req.files.file;
+      }
 
-    if (!allowedTypes[mimetype]) {
-      return res.status(400).json({
+      if (!file || (Array.isArray(file) && file.length === 0)) {
+        return res.status(400).json({
+          success: false,
+          message: "No file was uploaded.",
+        });
+      }
+
+      if (Array.isArray(file)) {
+        file = file[0];
+      }
+
+      // Validate file type
+      const allowedTypes = [
+        "application/vnd.ms-excel",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "application/pdf",
+        "image/png",
+        "image/jpeg",
+        "image/jpg",
+      ];
+
+      if (!allowedTypes.includes(file.mimetype)) {
+        return res.status(400).json({
+          success: false,
+          message:
+            "Invalid file type. Only Excel (.xls, .xlsx), PDF, and image files are allowed.",
+        });
+      }
+
+      if (!file.data) {
+        return res.status(400).json({
+          error: "File data is undefined",
+          fileStructure: Object.keys(file),
+        });
+      }
+
+      // Validate file size (5MB max)
+      const maxSize = 5 * 1024 * 1024;
+      if (file.size > maxSize) {
+        return res.status(400).json({
+          success: false,
+          message: "File size too large. Maximum size is 5MB.",
+        });
+      }
+
+      const fileBase64 = file.data.toString("base64");
+
+      const uploadOptions: any = {
+        folder: "avatars",
+        resource_type: "raw",
+        public_id: `booking_${orderId}_${Date.now()}`,
+        use_filename: true,
+        unique_filename: false,
+      };
+
+      const uploadResult = await cloudinary.uploader.upload(
+        `data:${file.mimetype};base64,${fileBase64}`,
+        uploadOptions
+      );
+
+      const bookingData = {
+        "booking.public_id": uploadResult.public_id,
+        "booking.url": uploadResult.secure_url,
+        "booking.upload_date": Date.now(),
+      };
+      await Order.findByIdAndUpdate(order?._id, bookingData);
+
+      const updateOrder = await Order.findById(order?._id).populate({
+        path: "orderDetails.product",
+        model: "product",
+      });
+      res.status(200).json({
+        success: true,
+        message: "File uploaded successfully",
+        order: updateOrder,
+      });
+    } catch (error: any) {
+      console.error("Upload error:", error);
+      return res.status(500).json({
         success: false,
-        error:
-          "Invalid file type. Only Excel (.xls, .xlsx), PDF, and PNG files are allowed.",
+        message: "File upload failed",
+        error: error.message,
       });
     }
-    console.log(mimetype);
+  }
+);
 
-    // const fileType = allowedTypes[mimetype];
+exports.attachArtwork = catchAsyncError(
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      if (!req.files || Object.keys(req.files).length === 0) {
+        return res.status(400).json({
+          success: false,
+          message: "No files were uploaded.",
+        });
+      }
 
-    // // Upload to Cloudinary
-    // const uploadOptions = {
-    //   folder: "uploads",
-    //   resource_type: fileType === "pdf" ? "raw" : "image",
-    // };
+      const { orderId } = req.body;
 
-    // const result = await cloudinary.uploader.upload(
-    //   uploadedFile.tempFilePath,
-    //   uploadOptions
-    // );
+      if (!orderId) {
+        return res.status(400).json({
+          success: false,
+          message: "Order ID is required.",
+        });
+      }
 
-    // console.log(result);
+      const order = await Order.findOne({ orderId: orderId });
+      if (!order) {
+        return next(ErrorHandler("Order not found", 404, res, next));
+      }
+
+      let file: any;
+
+      if (Array.isArray(req.files)) {
+        file = req.files[0];
+      } else {
+        file = req.files.file;
+      }
+
+      if (!file || (Array.isArray(file) && file.length === 0)) {
+        return res.status(400).json({
+          success: false,
+          message: "No file was uploaded.",
+        });
+      }
+
+      if (Array.isArray(file)) {
+        file = file[0];
+      }
+
+      // Validate file type
+      const allowedTypes = [
+        "application/vnd.ms-excel",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "application/pdf",
+        "image/png",
+        "image/jpeg",
+        "image/jpg",
+      ];
+
+      if (!allowedTypes.includes(file.mimetype)) {
+        return res.status(400).json({
+          success: false,
+          message:
+            "Invalid file type. Only Excel (.xls, .xlsx), PDF, and image files are allowed.",
+        });
+      }
+
+      if (!file.data) {
+        return res.status(400).json({
+          error: "File data is undefined",
+          fileStructure: Object.keys(file),
+        });
+      }
+
+      // Validate file size (5MB max)
+      const maxSize = 5 * 1024 * 1024;
+      if (file.size > maxSize) {
+        return res.status(400).json({
+          success: false,
+          message: "File size too large. Maximum size is 5MB.",
+        });
+      }
+
+      const fileBase64 = file.data.toString("base64");
+
+      const uploadOptions: any = {
+        folder: "avatars",
+        resource_type: "raw",
+        public_id: `artwork_${orderId}_${Date.now()}`,
+        use_filename: true,
+        unique_filename: false,
+      };
+
+      const uploadResult = await cloudinary.uploader.upload(
+        `data:${file.mimetype};base64,${fileBase64}`,
+        uploadOptions
+      );
+
+      const artworkData = {
+        "artwork.public_id": uploadResult.public_id,
+        "artwork.url": uploadResult.secure_url,
+        "artwork.upload_date": Date.now(),
+      };
+      await Order.findByIdAndUpdate(order?._id, artworkData);
+
+      const updateOrder = await Order.findById(order?._id).populate({
+        path: "orderDetails.product",
+        model: "product",
+      });
+      res.status(200).json({
+        success: true,
+        message: "File uploaded successfully",
+        order: updateOrder,
+      });
+    } catch (error: any) {
+      console.error("Upload error:", error);
+      return res.status(500).json({
+        success: false,
+        message: "File upload failed",
+        error: error.message,
+      });
+    }
+  }
+);
+
+exports.orderValidation = catchAsyncError(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { id, user, mode, batchJob } = req.body;
+
+    const order = await Order.findOne({ orderId: id });
+
+    if (!order) {
+      return next(ErrorHandler("CALL THE ADMINISTRATION", 400, res, next));
+    }
+
+    if (mode === "Entry Mode") {
+      await Order.findByIdAndUpdate(order._id, {
+        status: {
+          mode: "Validated",
+          batchJob: batchJob,
+        },
+      });
+      await order.status.user.push(user);
+
+      const freshOrder = await Order.findById(order._id).populate({
+        path: "orderDetails.product",
+        model: "product",
+      });
+
+      res.status(200).json({
+        success: true,
+        message: "",
+        order: freshOrder,
+      });
+    } else if (mode === "Validated") {
+      await Order.findByIdAndUpdate(order._id, {
+        status: {
+          mode: "Entry Mode",
+        },
+      });
+      await order.status.user.push(user);
+
+      const freshOrder = await Order.findById(order._id).populate({
+        path: "orderDetails.product",
+        model: "product",
+      });
+
+      res.status(200).json({
+        success: true,
+        message: "",
+        order: freshOrder,
+      });
+    } else {
+      return next(ErrorHandler("CALL THE ADMINISTRATION", 400, res, next));
+    }
   }
 );

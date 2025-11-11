@@ -18,6 +18,7 @@ export interface IOrderdetails {
   artwork: {
     public_id: string;
     url: string;
+    upload_date: Date;
   };
 
   contactDetails: {

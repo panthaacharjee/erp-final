@@ -11,7 +11,11 @@ const autoIncrement = require("mongoose-auto-increment");
 
 app.use(bodyParser.urlencoded({ extended: true, limit: "50mb" }));
 app.use(
-  fileUpload({ limits: { fieldSize: 100 * 1024 * 1024 }, useTempFiles: true })
+  fileUpload({
+    useTempFiles: false, // ← THIS IS CRITICAL!
+    createParentPath: true,
+    limits: { fileSize: 50 * 1024 * 1024 },
+  })
 );
 app.use(express.json({ limit: "50mb" }));
 
