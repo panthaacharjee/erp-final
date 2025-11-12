@@ -7,6 +7,7 @@ const {
   attachBooking,
   attachArtwork,
   orderValidation,
+  orderDetailsDelete,
 } = require("../controllers/orderController");
 
 routerOrder.route("/create/order").post(orderCreate);
@@ -14,5 +15,6 @@ routerOrder.route("/order/product").put(orderProduct);
 routerOrder.route("/booking/file/upload").put(attachBooking);
 routerOrder.route("/artwork/file/upload").put(attachArtwork);
 routerOrder.route("/order/validation").put(orderValidation);
+routerOrder.route("/order/details/delete").put(orderDetailsDelete);
 
 module.exports = routerOrder;

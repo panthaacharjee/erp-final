@@ -1,3 +1,5 @@
+import { Request, Response } from "express";
+
 const express = require("express");
 const app = express();
 
@@ -45,6 +47,14 @@ app.use("/api/v1", hr);
 app.use("/api/v1", business);
 app.use("/api/v1", product);
 app.use("/api/v1", order);
+
+app.get("/api/v1/testing/server", (req: Request, res: Response) => {
+  res.status(200).json({
+    success: true,
+    message: "SUCCESS SERVER RUNNING",
+    arrayData: ["Pantha", 25, { Pantha: "Pantha" }],
+  });
+});
 
 app.use(errorMiddleware);
 

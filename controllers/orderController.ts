@@ -634,3 +634,21 @@ exports.orderValidation = catchAsyncError(
     }
   }
 );
+
+exports.orderDetailsDelete = catchAsyncError(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { orderId } = req.body;
+
+    const order = await Order.findOne({ orderId: orderId });
+
+    if (!order) {
+      return next(ErrorHandler("CALL THE ADMINISTRATION", 400, res, next));
+    }
+
+    if (order?.orderDetails.length < 1) {
+      return next(ErrorHandler("ORDER DETAILS HAVE NO DATA", 400, res, next));
+    }
+
+    console.log(order?.orderDetails);
+  }
+);
