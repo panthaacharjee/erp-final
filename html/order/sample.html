@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{orders.0.orderId}}</title>
+    <style>
+      /* Define page size and margins */
+      @page {
+        size: A4;
+        margin: 0mm 5mm;
+      }
+
+      /* Force page breaks after each section */
+      .page-break {
+        page-break-after: always;
+      }
+
+      /* Last page shouldn't have a page break */
+      .page-break:last-child {
+        page-break-after: auto;
+      }
+
+      /* Style for each page content */
+      .page-content {
+        height: 100%;
+        padding: 10px;
+      }
+
+      .box {
+        display: flex;
+        align-items: center;
+      }
+      .box-logo {
+        width: 15%;
+      }
+      .box-logo > p {
+        font-size: 24px;
+        font-weight: bold;
+        text-transform: uppercase;
+      }
+      .box-header-content {
+        background-color: rgb(241, 233, 233);
+        width: 85%;
+        text-align: center;
+        font-size: 16px;
+        font-weight: bold;
+      }
+      .title-box {
+        border: 1px solid black;
+        text-align: center;
+        padding: -10px 0px !important;
+      }
+
+      /* Conditional styling */
+      .urgent-order {
+        border: 3px solid red;
+        background-color: #ffe6e6;
+        padding: 10px;
+        margin-bottom: 10px;
+      }
+
+      .pending-approval {
+        border-left: 4px solid orange;
+        background-color: #fff3cd;
+        padding: 8px;
+        margin: 5px 0;
+      }
+
+      .hidden {
+        display: none;
+      }
+
+      .conditional-section {
+        margin: 10px 0;
+      }
+
+      /* ID Card */
+      .id-card-container {
+        border: 2px solid black;
+        margin-top: 2px;
+        margin-bottom: 20px;
+      }
+
+      .id-card-box {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-bottom: 2px solid black;
+      }
+      .id-card {
+        display: flex;
+        align-items: center;
+        margin-left: 10px;
+      }
+      .id-card > label {
+        font-size: 16px;
+      }
+      .id-card > p {
+        font-size: 20px;
+      }
+      .dot-line {
+        margin-top: 10px;
+        border: 2px dotted black;
+      }
+
+      .container {
+        max-width: 1000px;
+        margin: 0 auto;
+        background-color: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+
+      h1 {
+        color: #333;
+        text-align: center;
+        margin-bottom: 30px;
+      }
+
+      .example {
+        margin-bottom: 40px;
+      }
+
+      .example h2 {
+        color: #444;
+        border-bottom: 1px solid #ddd;
+        padding-bottom: 10px;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+      }
+
+      th,
+      td {
+        border: 1px solid black;
+        padding: 10px;
+        text-align: center;
+      }
+
+      th {
+        background-color: #f0f0f0;
+        font-weight: bold;
+      }
+
+      /* For 5 columns */
+      .five-columns th {
+        width: 20%; /* 100% / 5 = 20% */
+      }
+
+      /* For 4 columns */
+      .four-columns th {
+        width: 25%; /* 100% / 4 = 25% */
+      }
+
+      .code-block {
+        background-color: #f8f8f8;
+        padding: 15px;
+        border-radius: 5px;
+        margin-top: 15px;
+        overflow-x: auto;
+        font-family: monospace;
+      }
+
+      .note {
+        background-color: #e7f3ff;
+        padding: 10px;
+        border-radius: 5px;
+        margin-top: 20px;
+      }
+
+      /* Print optimizations */
+      @media print {
+        .no-print {
+          display: none;
+        }
+        .page-break {
+          page-break-after: always;
+        }
+      }
+    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <!-- {{#if showSummary}}
+    <div class="page-content">
+      <div class="box">
+        <div class="box-logo">
+          <p>Erpac</p>
+        </div>
+        <div class="box-header-content">
+          <p>Order Summary - {{summary.generatedDate}}</p>
+        </div>
+      </div>
+      <div class="title-box">
+        <p style="font-weight: bold">ORDER JOB BAG SUMMARY</p>
+      </div>
+      <div style="margin: 20px 0">
+        <h3>Order Overview</h3>
+        <p><strong>Total Orders:</strong> {{summary.totalOrders}}</p>
+        <p><strong>Total Items:</strong> {{summary.totalItems}}</p>
+        <p><strong>Urgent Orders:</strong> {{summary.urgentOrders}}</p>
+      </div>
+      <table
+        style="width: 100%; border-collapse: collapse; border: 1px solid black"
+      >
+        <thead>
+          <tr style="background-color: #f0f0f0">
+            <th style="border: 1px solid black; padding: 8px">Order ID</th>
+            <th style="border: 1px solid black; padding: 8px">Product</th>
+            <th style="border: 1px solid black; padding: 8px">Quantity</th>
+            <th style="border: 1px solid black; padding: 8px">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{#each orders}}
+          <tr>
+            <td style="border: 1px solid black; padding: 8px">{{orderId}}</td>
+            <td style="border: 1px solid black; padding: 8px">
+              {{productName}}
+            </td>
+            <td style="border: 1px solid black; padding: 8px">
+              {{totalQuantity}}
+            </td>
+            <td style="border: 1px solid black; padding: 8px">
+              {{#if isUrgent}}<span style="color: red">URGENT</span
+              >{{else}}{{status}}{{/if}}
+            </td>
+          </tr>
+          {{/each}}
+        </tbody>
+      </table>
+    </div>
+    <div class="page-break"></div>
+    {{/if}} -->
+
+    <!-- {{#each orders}} {{#if hasPageBreak}}
+    <div class="page-break"></div>
+    {{/if}} -->
+
+    <div class="page-content {{#if isUrgent}}urgent-order{{/if}}">
+      <div class="box">
+        <div class="box-logo">
+          <p>Erpac</p>
+        </div>
+        <div class="box-header-content">
+          <p>
+            Plot # 2083-2085, Binodpur, Maijdee, Sadar, Noakhali-3800,
+            Bangladesh
+          </p>
+        </div>
+      </div>
+
+      <!-- {{#if isUrgent}}
+      <div
+        style="
+          background-color: #ffcccc;
+          border: 2px solid red;
+          padding: 5px;
+          text-align: center;
+          margin: 5px 0;
+        "
+      >
+        <strong style="color: red"
+          >⚠ URGENT ORDER - VALIDATED - PRIORITY PROCESSING REQUIRED</strong
+        >
+      </div>
+      {{/if}} -->
+
+      <div
+        class="title-box"
+        style="display: flex; justify-content: space-between; text-align: right"
+      >
+        <p style="font-weight: bold; font-size: 14px; width: 50%">Job Bag</p>
+        <p
+          style="
+            font-weight: bold;
+            font-size: 14px;
+            width: 50%;
+            padding-right: 9px;
+          "
+        >
+          Total Job Bag: {{../summary.totalJob}}
+        </p>
+      </div>
+
+      <table style="width: 100%; border-collapse: collapse; margin-top: 10px">
+        <tbody>
+          <tr style="height: 40px">
+            <th style="border: 1px solid black">Regular</th>
+            <th style="border: 1px solid black">
+              <span>Job Bag: </span><span>{{orders}}</span>
+            </th>
+            <th style="border: 1px solid black">Regular</th>
+            <th style="border: 1px solid black">Regular</th>
+            <th style="border: 1px solid black">Regular</th>
+          </tr>
+          <tr style="height: 40px; width: 100%">
+            <th style="border: 1px solid black">Regular</th>
+            <th style="border: 1px solid black">Regular</th>
+            <th style="border: 1px solid black">Regular</th>
+            <th style="border: 1px solid black">Regular</th>
+          </tr>
+        </tbody>
+      </table>
+      <!-- <div
+        style="display: flex; justify-content: space-between; line-height: 10px"
+      >
+        <div style="width: 50%; line-height: 10px">
+          <p style="font-weight: bold">
+            <span>Product ID</span>: <span>{{ID}}</span>
+          </p>
+          <p style="font-weight: bold">
+            <span>Product Line</span>: <span>{{LINE}}</span>
+          </p>
+          <p><span>Prod. Description: </span><span>{{DESC}}</span></p>
+          <p><span>DSM / Ref. Code: </span><span>{{REF}}</span></p>
+          <p><span>Buyer Name: </span><span>{{BUYER}}</span></p>
+          <p><span>Vendor Name: </span><span>{{VENDOR}}</span></p>
+        </div>
+        <div style="width: 50%; line-height: 10px; text-align: right">
+          <p><span>Dev. Received Date</span>: <span>{{RECEIVE}}</span></p>
+          <p><span>Product Category</span>: <span>{{CATEGORY}}</span></p>
+          <p><span></span></p>
+          <p><span>Product Dimension: </span><span>{{DIMENSION}}</span></p>
+          <p><span>Contact Name: </span><span>{{CONTACT}}</span></p>
+          <p><span>CS Name: </span><span>{{CS}}</span></p>
+        </div>
+      </div> -->
+
+      <!-- {{#if hasSpecialInstructions}}
+      <div class="conditional-section pending-approval">
+        <h4>Special Instructions:</h4>
+        <p>{{artwork.specialInstructions}}</p>
+      </div>
+      {{/if}} -->
+
+      <!-- {{#if requiresArtworkApproval}}
+      <div class="conditional-section pending-approval">
+        <h4>⚠ ARTWORK PENDING APPROVAL</h4>
+        <p>This order cannot proceed until artwork is approved.</p>
+      </div>
+      {{/if}} -->
+
+      <!-- {{#if hasProcesses}}
+      <table
+        style="
+          width: 100%;
+          border: 1px solid black;
+          border-collapse: collapse;
+          margin-top: 10px;
+        "
+      >
+        {{#each processArray}}
+        <tr>
+          <td
+            style="
+              border: 1px solid black;
+              padding: 6px;
+              width: 20%;
+              text-align: center;
+            "
+          >
+            {{this.name}}
+          </td>
+          <td style="border: 1px solid black; padding: 6px; width: 80%">
+            {{#if this.hasSpec}} {{#each this.spec}}
+            <table>
+              <tr>
+                <td>{{this.name}}: {{this.item}} {{this.value}}</td>
+              </tr>
+            </table>
+            {{/each}} {{else}}
+            <em>No specifications provided</em>
+            {{/if}}
+          </td>
+        </tr>
+        {{/each}}
+      </table>
+      {{else}} -->
+      <div
+        style="
+          border: 1px solid #ccc;
+          padding: 10px;
+          margin: 10px 0;
+          text-align: center;
+        "
+      >
+        <em>No processes defined for this product</em>
+      </div>
+      {{/if}}
+
+      <!-- Sample Image Section (Conditional) -->
+      <div style="margin-top: 5px; display: flex">
+        <div style="border: 1px solid black; padding: 8px; width: 80%">
+          {{#if hasSampleImage}}
+          <img
+            src="{{this.sample}}"
+            alt="Sample Image"
+            style="height: 150px; width: 250px; object-fit: contain"
+          />
+          {{else}}
+          <div
+            style="
+              height: 150px;
+              width: 250px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              background-color: #f0f0f0;
+            "
+          >
+            <em>No sample image available</em>
+          </div>
+          {{/if}}
+        </div>
+        <div
+          style="
+            width: 20%;
+            border: 1px solid black;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+          "
+        >
+          <p style="transform: rotate(90deg)">Sample Image</p>
+        </div>
+      </div>
+
+      <!-- Physical Image Section -->
+      <div style="margin-top: 5px; display: flex">
+        <div style="border: 1px solid black; padding: 8px; width: 80%">
+          <div
+            style="
+              height: 150px;
+              width: 250px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              background-color: #f0f0f0;
+            "
+          >
+            <em>Physical image to be captured</em>
+          </div>
+        </div>
+        <div
+          style="
+            width: 20%;
+            border: 1px solid black;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+          "
+        >
+          <p>Physical Image</p>
+        </div>
+      </div>
+
+      <!-- Additional Content (Conditional) -->
+      <!-- {{#if additionalContent}}
+      <div style="margin-top: 10px; border: 1px solid #ccc; padding: 10px">
+        <h4>Additional Information:</h4>
+        <p>{{additionalContent}}</p>
+      </div>
+      {{/if}} -->
+
+      <!-- Page Footer -->
+      <div
+        style="
+          margin-top: 20px;
+          font-size: 10px;
+          color: #666;
+          text-align: center;
+        "
+      >
+        Page {{pageNumber}} of {{totalPages}} | Generated on
+        {{../summary.generatedDate}} | {{../summary.JOBPRINT}}
+      </div>
+    </div>
+    {{/each}}
+  </body>
+</html>

@@ -7,6 +7,12 @@ import { Order } from "../models/Order/OrderModel";
 import OrderCounter from "../models/Order/OrderSerial";
 import { Product } from "../models/Product/ProductModel";
 
+import generatePDFFromUrl from "../utils/generatePdf";
+import path from "path";
+import { Types } from "mongoose";
+const fs = require("fs");
+const handlebars = require("handlebars");
+
 exports.orderCreate = catchAsyncError(
   async (req: Request, res: Response, next: NextFunction) => {
     const {
@@ -38,6 +44,7 @@ exports.orderCreate = catchAsyncError(
       base_qty_full_part,
       base_qty_half_part,
       isDetails,
+      user,
     }: {
       orderId: string;
       orderDate: Date;
@@ -113,8 +120,8 @@ exports.orderCreate = catchAsyncError(
           }
         ).lean();
 
-        if (order.user[order.user.length - 1] !== req.user) {
-          await order.user.push(req.user);
+        if (order.user[order.user.length - 1].toString() !== user) {
+          await order.user.push(new Types.ObjectId(user));
           await order.save();
         }
         const updatedOrder = await Order.findById(order._id).populate({
@@ -155,8 +162,10 @@ exports.orderCreate = catchAsyncError(
             },
           });
 
-          if (order.user[order.user.length - 1] !== req.user) {
-            await order.user.push(req.user);
+          if (
+            order.user[order.user.length - 1].toString() !== user.toString()
+          ) {
+            await order.user.push(new Types.ObjectId(user));
             await order.save();
           }
           const orderData = await Order.findById(order._id).populate({
@@ -240,8 +249,8 @@ exports.orderCreate = catchAsyncError(
           },
           { new: true }
         );
-        if (order?.user[order.user.length - 1] !== req.user) {
-          await order?.user.push(req.user);
+        if (order?.user[order.user.length - 1].toString() !== user) {
+          await order?.user.push(new Types.ObjectId(user));
           await order?.save();
         }
         const updateOrder = await Order.findById(order?._id).populate({
@@ -275,8 +284,8 @@ exports.orderCreate = catchAsyncError(
         };
         await order?.orderDetails.push(orderDetailsData as any);
         await order.save();
-        if (order?.user[order.user.length - 1] !== req.user) {
-          await order?.user.push(req.user);
+        if (order?.user[order.user.length - 1].toString() !== user) {
+          await order?.user.push(new Types.ObjectId(user));
           await order?.save();
         }
 
@@ -637,18 +646,271 @@ exports.orderValidation = catchAsyncError(
 
 exports.orderDetailsDelete = catchAsyncError(
   async (req: Request, res: Response, next: NextFunction) => {
-    const { orderId } = req.body;
+    const { orderId, serialsToDelete } = req.body;
 
-    const order = await Order.findOne({ orderId: orderId });
+    const order = await Order.findOne({ orderId });
 
     if (!order) {
       return next(ErrorHandler("CALL THE ADMINISTRATION", 400, res, next));
     }
 
-    if (order?.orderDetails.length < 1) {
-      return next(ErrorHandler("ORDER DETAILS HAVE NO DATA", 400, res, next));
+    if (
+      !serialsToDelete ||
+      !Array.isArray(serialsToDelete) ||
+      serialsToDelete.length === 0
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "PLEASE SELECT ATLEAST ONE SERIAL",
+      });
     }
 
-    console.log(order?.orderDetails);
+    // Filter out the items to delete and re-sequence the remaining ones
+    const sera = order.orderDetails
+      .filter((item: any) => !serialsToDelete.includes(item.serial))
+      .map((item: any, index: any) => ({
+        ...(item.toObject ? item.toObject() : item),
+        serial: (index + 1).toString(), // Re-sequence starting from 1
+      }));
+
+    const updateOrderDelete = {
+      orderDetails: sera,
+    };
+    await Order.findByIdAndUpdate(order?._id, updateOrderDelete);
+
+    const updateOrder = await Order.findById(order?._id).populate({
+      path: "orderDetails.product",
+      model: "product",
+    });
+
+    res.status(200).json({
+      success: true,
+      order: updateOrder,
+      message: "SUCCESSFULLY DETAILS DELETED",
+    });
+  }
+);
+
+exports.orderJobBag = catchAsyncError(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { orderId, user }: any = req.body;
+
+    const order = await Order.findOne({ orderId })
+      .populate({
+        path: "orderDetails.product",
+        model: "product",
+        populate: {
+          path: "process",
+          model: "process",
+        },
+      })
+      .lean(); // Convert to plain object
+
+    if (!order) {
+      return next(ErrorHandler("CALL THE ADMINISTRATION", 400, res, next));
+    }
+
+    const result = await Order.aggregate([
+      { $match: { orderId: orderId } },
+      { $unwind: "$orderDetails" },
+      {
+        $group: {
+          _id: {
+            product: "$orderDetails.product",
+            style_cc_iman: "$orderDetails.style_cc_iman",
+          },
+
+          originalOrder: { $first: "$$ROOT" },
+          orderDetails: { $push: "$orderDetails" },
+        },
+      },
+      {
+        $project: {
+          orderId: "$originalOrder.orderId",
+          orderDate: "$originalOrder.orderDate",
+          user: "$originalOrder.user",
+          status: "$originalOrder.status",
+          booking: "$originalOrder.booking",
+          artwork: "$originalOrder.artwork",
+          contactDetails: "$originalOrder.contactDetails",
+          orderDetails: "$orderDetails",
+          createdAt: "$originalOrder.createdAt",
+          updatedAt: "$originalOrder.updatedAt",
+
+          style_cc_iman: "$_id.style_cc_iman",
+          product: "$_id.product",
+        },
+      },
+    ]);
+    console.log(result);
+
+    // Convert aggregation results to plain objects
+    const plainResults = result.map((item) => JSON.parse(JSON.stringify(item)));
+
+    const populatedResults = await Order.populate(plainResults, {
+      path: "orderDetails.product",
+      model: "product",
+      populate: {
+        path: "process",
+        model: "process",
+      },
+    });
+
+    // Enhanced data with conditional properties for template
+    const enhancedData = populatedResults.map((item: any, index: number) => {
+      // Convert to plain object to avoid prototype issues
+      const plainItem = JSON.parse(JSON.stringify(item));
+
+      const firstOrderDetail =
+        plainItem.orderDetails && plainItem.orderDetails[0];
+
+      const product = firstOrderDetail?.product;
+      const processes = product?.process;
+
+      // Process array for the template table - ensure plain objects
+      const processArray = Array.isArray(processes)
+        ? processes.map((process: any) => ({
+            name: process.name || "",
+            spec: Array.isArray(process.spec) ? [...process.spec] : [],
+            hasSpec: Array.isArray(process.spec) && process.spec.length > 0,
+          }))
+        : [];
+
+      const orderMonth = [
+        "Jan",
+        "Feb",
+        "Mar",
+        "Apr",
+        "May",
+        "Jun",
+        "Jul",
+        "Aug",
+        "Sep",
+        "Oct",
+        "Nov",
+        "Dec",
+      ];
+
+      const orderDate = new Date(plainItem?.orderDate);
+      const finalOrder = `${orderDate.getDate()}-${
+        orderMonth[orderDate.getMonth()]
+      }-${orderDate.getFullYear()}`;
+
+      const reqDate = new Date(plainItem.contactDetails?.req_date);
+      const finalReq = `${reqDate.getDate()}-${
+        orderMonth[reqDate.getMonth()]
+      }-${reqDate.getFullYear()}`;
+
+      const base_qty_full = plainItem.orderDetails.reduce(
+        (sum: number, detail: any) =>
+          sum + (Number(detail.base_qty_full_part) || 0),
+        0
+      );
+      const base_qty_half = plainItem.orderDetails.reduce(
+        (sum: number, detail: any) =>
+          sum + (Number(detail.base_qty_half_part) || 0),
+        0
+      );
+      return {
+        item,
+        // Page conditions
+        hasPageBreak: index > 0,
+        isFirstPage: index === 0,
+        isLastPage: index === populatedResults.length - 1,
+        pageNumber: index + 1,
+        totalPages: populatedResults.length,
+
+        // Conditional flags for template
+        isUrgent: plainItem.status === "Validated",
+
+        hasMultipleProcesses: Array.isArray(processes) && processes.length > 1,
+        hasProcesses: processArray.length > 0,
+
+        // Formatted data for template
+        formattedOrderDate: plainItem.orderDate
+          ? new Date(plainItem.orderDate).toLocaleDateString()
+          : "N/A",
+
+        ORDERID: item.orderId,
+        ORDER_DATE: finalOrder,
+        JOBID: item.orderId.replace("/^BTPL/", "JB"),
+        JOB_NO: index + 1,
+        BUYER: plainItem.contactDetails?.buyer || "",
+        VENDOR: plainItem.contactDetails?.vendor || "",
+        BUYER_REF: plainItem.contactDetails?.buyerRef || "",
+        VENDOR_REF: plainItem.contactDetails?.vendorRef || "",
+        CS: plainItem.contactDetails?.sales || "",
+        SEASON: plainItem.contactDetails?.season || "",
+        REQ_DATE: finalReq || "",
+
+        PRODUCT_ID: firstOrderDetail?.product?.p_id || "",
+        LINE: firstOrderDetail?.line || "",
+        CATEGORY: firstOrderDetail?.category || "",
+        DESC: firstOrderDetail?.desc || "",
+        HEIGHT:
+          firstOrderDetail?.product?.dimensionDetails?.measure?.height || "",
+        LENGTH:
+          firstOrderDetail?.product?.dimensionDetails?.measure?.length || "",
+        WIDTH:
+          firstOrderDetail?.product?.dimensionDetails?.measure?.width || "",
+        UNIT:
+          firstOrderDetail?.product?.dimensionDetails?.measure
+            ?.dimension_unit || "",
+
+        totalQuantity: Array.isArray(plainItem.orderDetails)
+          ? plainItem.orderDetails.reduce(
+              (sum: number, detail: any) =>
+                sum + (Number(detail.order_qty) || 0),
+              0
+            )
+          : 0,
+
+        baseQuantity: base_qty_full + base_qty_half,
+
+        processArray: processArray,
+      };
+    });
+
+    const htmlPath = path.join(__dirname, "../html/order/orderJob.html");
+    const htmlContent = fs.readFileSync(htmlPath, "utf-8");
+
+    const template = handlebars.compile(htmlContent, {
+      noEscape: true,
+      // This prevents the prototype access warnings
+      runtimeOptions: {
+        allowProtoPropertiesByDefault: true,
+        allowProtoMethodsByDefault: true,
+      },
+    });
+
+    const html = template({
+      orders: enhancedData,
+      summary: {
+        totalJob: enhancedData.length,
+        urgentOrders: enhancedData.filter((order: any) => order.isUrgent)
+          .length,
+        generatedDate: new Date().toLocaleDateString(),
+        JOBPRINT: user,
+      },
+      hasMultipleOrders: enhancedData.length > 1,
+    });
+
+    console.log(enhancedData);
+
+    const pdfBuffer = await generatePDFFromUrl({
+      html: html,
+      outputPath: "report.pdf",
+    }).catch(console.error);
+
+    res.set({
+      "Content-Type": "application/pdf",
+      "Content-Disposition": `attachment; filename=order-${orderId}-job-bag.pdf`,
+    });
+    res.send(pdfBuffer);
+
+    // res.status(200).json({
+    //   success: true,
+    //   test: enhancedData,
+    // });
   }
 );

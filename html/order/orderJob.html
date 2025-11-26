@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{orders.0.ORDERID}}</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        font-family: "Roboto", sans-serif;
+      }
+      /* Define page size and margins */
+      @page {
+        size: A4;
+        margin: 0mm 5mm;
+      }
+
+      /* Force page breaks after each section */
+      .page-break {
+        page-break-after: always;
+      }
+
+      /* Last page shouldn't have a page break */
+      .page-break:last-child {
+        page-break-after: auto;
+      }
+
+      /* Style for each page content using CSS Grid */
+      .page-content {
+        min-height: 293mm;
+        display: grid;
+        grid-template-rows: 1fr auto;
+        grid-template-areas:
+          "main"
+          "footer";
+        /* padding: 10px; */
+      }
+
+      .main-content {
+        grid-area: main;
+      }
+
+      .page-footer {
+        font-size: 10px;
+        color: #666;
+        text-align: center;
+        border-top: 1px solid black;
+        padding-top: 5px;
+      }
+
+      /* Rest of your existing styles remain the same */
+      .box {
+        display: flex;
+        align-items: center;
+      }
+      .box-logo {
+        width: 15%;
+      }
+      .box-logo > p {
+        font-size: 24px;
+        font-weight: bold;
+        text-transform: uppercase;
+      }
+      .box-header-content {
+        background-color: rgb(241, 233, 233);
+        width: 85%;
+        text-align: center;
+        font-size: 16px;
+        font-weight: bold;
+      }
+      .title-box {
+        border: 1px solid black;
+        text-align: center;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+      }
+
+      th,
+      td {
+        border: 1px solid black;
+        padding: 4px 8px;
+        font-size: 10px;
+      }
+
+      th {
+        background-color: #f0f0f0;
+        font-weight: bold;
+      }
+
+      /* Print optimizations */
+      @media print {
+        .no-print {
+          display: none;
+        }
+        .page-break {
+          page-break-after: always;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    {{#each orders}} {{#if hasPageBreak}}
+    <div class="page-break"></div>
+    {{/if}}
+    <div class="page-content">
+      <div class="main-content">
+        <div class="box">
+          <div class="box-logo">
+            <p>Erpac</p>
+          </div>
+          <div class="box-header-content">
+            <p>
+              Plot # 2083-2085, Binodpur, Maijdee, Sadar, Noakhali-3800,
+              Bangladesh
+            </p>
+          </div>
+        </div>
+
+        <div
+          class="title-box"
+          style="
+            display: flex;
+            justify-content: space-between;
+            text-align: right;
+          "
+        >
+          <p style="font-weight: bold; font-size: 12px; width: 50%">Job Bag</p>
+          <p style="font-size: 12px; width: 50%; padding-right: 9px">
+            Total Job Bag: {{../summary.totalJob}}
+          </p>
+        </div>
+
+        <!-- <table style="width: 100%; border-collapse: collapse; margin-top: 10px">
+          <tbody style="height: 20px">
+            <tr style="height: 10px; font-size: 10px">
+              <td
+                style="
+                  border: 1px solid black;
+                  font-size: 14px;
+                  font-weight: bold;
+                  background: #aaffbc;
+                "
+              >
+                Regular
+              </td>
+              <td style="border: 1px solid black">
+                <span>Job Bag: </span
+                ><span>{{this.ORDERID}}-{{this.JOB_NO}}</span>
+              </td>
+              <td style="border: 1px solid black">
+                <span>Buyer: </span><span>{{this.BUYER}}</span>
+              </td>
+              <td style="border: 1px solid black">
+                <span>Vendor:</span><span>{{this.VENDOR}}</span>
+              </td>
+              <td style="border: 1px solid black; line-height: 5px">
+                <p>Buyer Ref: {{this.BUYER_REF}}</p>
+                <p>Vendor Ref: {{this.VENDOR_REF}}</p>
+              </td>
+            </tr>
+            <tr style="height: 40px">
+              <td style="border: 1px solid black">Regular</td>
+              <td style="border: 1px solid black">Regular</td>
+              <td style="border: 1px solid black">Regular</td>
+              <td style="border: 1px solid black">Regular</td>
+            </tr>
+          </tbody>
+        </table> -->
+
+        <table>
+          <tr style="line-height: 1px; padding: 0px 8px !important">
+            <td
+              style="
+                background: rgb(162, 245, 162);
+                color: black;
+                text-align: center;
+                font-weight: bold;
+                font-size: 14px;
+              "
+            >
+              Regular
+            </td>
+            <td style="font-weight: bold">
+              Job Bag: {{this.JOBID}} - {{this.JOB_NO}}
+            </td>
+            <td style="font-weight: bold">Order No: {{this.ORDERID}}</td>
+            <td style="font-weight: bold">
+              <p>Buyer Ref: {{this.BUYER_REF}}</p>
+              <p>Vendor Ref: {{this.VENDOR_REF}}</p>
+            </td>
+            <td style="font-weight: bold">
+              <div style="display: flex; justify-content: center">
+                <img
+                  src="https://res.cloudinary.com/dgbbrqqiq/image/upload/v1764167965/TourmalineEnterprises-238548-QR-vs-Barcodes-Blogbanner1_tnfdyl.jpg"
+                  alt="IMAGE"
+                  style="height: 40px"
+                />
+              </div>
+            </td>
+          </tr>
+          <tr style="font-weight: bold">
+            <td colspan="2">Vendor: {{this.VENDOR}}</td>
+            <td>Buyer: {{this.BUYER}}</td>
+            <td>Product Line: {{this.LINE}}</td>
+            <td>Season: {{this.SEASON}}</td>
+          </tr>
+          <tr style="font-weight: 500">
+            <td colspan="2">Product Desc: {{this.DESC}}</td>
+            <td>
+              DIMENSION: {{this.WIDTH}} x {{this.LENGTH}} {{#if this.HEIGHT}} x
+              {{this.HEIGHT}} {{/if}} {{this.UNIT}}
+            </td>
+            <td>Product Id: {{this.PRODUCT_ID}}</td>
+            <td>Order Date: {{this.ORDER_DATE}}</td>
+          </tr>
+          <tr style="font-weight: 500">
+            <td>RM:</td>
+            <td>Booking Qty: {{this.totalQuantity}}</td>
+            <td>Base Qty: {{this.baseQuantity}} Pcs</td>
+            <td></td>
+            <td>Request Date: {{this.REQ_DATE}}</td>
+          </tr>
+          <tr style="font-weight: 500">
+            <td colspan="2">CS: {{this.CS}}</td>
+            <td colspan="2"></td>
+            <td></td>
+          </tr>
+        </table>
+      </div>
+
+      <!-- Footer at the bottom of each page -->
+      <div class="page-footer">
+        Generated on {{../summary.generatedDate}} | {{../summary.JOBPRINT}}
+      </div>
+    </div>
+    {{/each}}
+  </body>
+</html>
