@@ -5,11 +5,13 @@ const catchAsyncError = require("../middleware/catchAsyncError");
 const cloudinary = require("cloudinary");
 import { Order } from "../models/Order/OrderModel";
 import OrderCounter from "../models/Order/OrderSerial";
-import { Product } from "../models/Product/ProductModel";
+import { Process, Product } from "../models/Product/ProductModel";
+
+const Handlebars = require("handlebars");
 
 import generatePDFFromUrl from "../utils/generatePdf";
 import path from "path";
-import { Types } from "mongoose";
+
 const fs = require("fs");
 const handlebars = require("handlebars");
 
@@ -120,10 +122,10 @@ exports.orderCreate = catchAsyncError(
           }
         ).lean();
 
-        if (order.user[order.user.length - 1].toString() !== user) {
-          await order.user.push(new Types.ObjectId(user));
-          await order.save();
-        }
+        // if (order.user[order.user.length - 1].toString() !== user) {
+        //   await order.user.push(new Types.ObjectId(user));
+        //   await order.save();
+        // }
         const updatedOrder = await Order.findById(order._id).populate({
           path: "orderDetails.product",
           model: "product",
@@ -162,12 +164,12 @@ exports.orderCreate = catchAsyncError(
             },
           });
 
-          if (
-            order.user[order.user.length - 1].toString() !== user.toString()
-          ) {
-            await order.user.push(new Types.ObjectId(user));
-            await order.save();
-          }
+          // if (
+          //   order.user[order.user.length - 1].toString() !== user.toString()
+          // ) {
+          //   await order.user.push(new Types.ObjectId(user));
+          //   await order.save();
+          // }
           const orderData = await Order.findById(order._id).populate({
             path: "orderDetails.product",
             model: "product",
@@ -249,10 +251,10 @@ exports.orderCreate = catchAsyncError(
           },
           { new: true }
         );
-        if (order?.user[order.user.length - 1].toString() !== user) {
-          await order?.user.push(new Types.ObjectId(user));
-          await order?.save();
-        }
+        // if (order?.user[order.user.length - 1].toString() !== user) {
+        //   await order?.user.push(new Types.ObjectId(user));
+        //   await order?.save();
+        // }
         const updateOrder = await Order.findById(order?._id).populate({
           path: "orderDetails.product",
           model: "product",
@@ -284,10 +286,10 @@ exports.orderCreate = catchAsyncError(
         };
         await order?.orderDetails.push(orderDetailsData as any);
         await order.save();
-        if (order?.user[order.user.length - 1].toString() !== user) {
-          await order?.user.push(new Types.ObjectId(user));
-          await order?.save();
-        }
+        // if (order?.user[order.user.length - 1].toString() !== user) {
+        //   await order?.user.push(new Types.ObjectId(user));
+        //   await order?.save();
+        // }
 
         const updateOrder = await Order.findById(order._id).populate({
           path: "orderDetails.product",
@@ -704,7 +706,7 @@ exports.orderJobBag = catchAsyncError(
           model: "process",
         },
       })
-      .lean(); // Convert to plain object
+      .lean();
 
     if (!order) {
       return next(ErrorHandler("CALL THE ADMINISTRATION", 400, res, next));
@@ -714,12 +716,22 @@ exports.orderJobBag = catchAsyncError(
       { $match: { orderId: orderId } },
       { $unwind: "$orderDetails" },
       {
+        $sort: {
+          "orderDetails.product": 1,
+          "orderDetails.model": 1,
+          "orderDetails.item_pact_art": 1,
+          "orderDetails.style_cc_iman": 1,
+          "orderDetails.createdAt": 1,
+        },
+      },
+      {
         $group: {
           _id: {
             product: "$orderDetails.product",
+            model: "$orderDetails.model",
+            item_pact_art: "$orderDetails.item_pact_art",
             style_cc_iman: "$orderDetails.style_cc_iman",
           },
-
           originalOrder: { $first: "$$ROOT" },
           orderDetails: { $push: "$orderDetails" },
         },
@@ -736,13 +748,14 @@ exports.orderJobBag = catchAsyncError(
           orderDetails: "$orderDetails",
           createdAt: "$originalOrder.createdAt",
           updatedAt: "$originalOrder.updatedAt",
-
-          style_cc_iman: "$_id.style_cc_iman",
           product: "$_id.product",
+          // Preserve sorting index
+          sortIndex: { $first: "$originalOrder.sortIndex" }, // if you have one
         },
       },
+      // Add final sort after projection
+      { $sort: { product: 1 } }, // or whatever field you want to sort by
     ]);
-    console.log(result);
 
     // Convert aggregation results to plain objects
     const plainResults = result.map((item) => JSON.parse(JSON.stringify(item)));
@@ -758,22 +771,40 @@ exports.orderJobBag = catchAsyncError(
 
     // Enhanced data with conditional properties for template
     const enhancedData = populatedResults.map((item: any, index: number) => {
-      // Convert to plain object to avoid prototype issues
-      const plainItem = JSON.parse(JSON.stringify(item));
+      const plainItem = item.toObject ? item.toObject() : item;
 
       const firstOrderDetail =
-        plainItem.orderDetails && plainItem.orderDetails[0];
+        plainItem.orderDetails && plainItem.orderDetails[0]
+          ? plainItem.orderDetails[0]
+          : {};
 
-      const product = firstOrderDetail?.product;
-      const processes = product?.process;
-
-      // Process array for the template table - ensure plain objects
+      const product = firstOrderDetail?.product || {};
+      const processes = product?.process || [];
+      const filterProcess = product?.process;
+      // FIXED: Properly handle process.spec with safe property access
       const processArray = Array.isArray(processes)
-        ? processes.map((process: any) => ({
-            name: process.name || "",
-            spec: Array.isArray(process.spec) ? [...process.spec] : [],
-            hasSpec: Array.isArray(process.spec) && process.spec.length > 0,
-          }))
+        ? processes.flatMap((process: any) => {
+            // Ensure process.spec exists and is an array
+            const specs = process?.spec;
+            if (Array.isArray(specs)) {
+              return specs.map((spec: any) => ({
+                title: spec?.name || "",
+                value: spec?.value || "",
+                item: spec?.item || "",
+              }));
+            }
+            return [];
+          })
+        : [];
+
+      const processArrayData = Array.isArray(filterProcess)
+        ? filterProcess
+            .filter((val: any) => val.details === true)
+            .map((process: any) => ({
+              title: process?.name || "",
+              details: process?.details || "",
+              information: process?.information || "",
+            }))
         : [];
 
       const orderMonth = [
@@ -791,26 +822,37 @@ exports.orderJobBag = catchAsyncError(
         "Dec",
       ];
 
-      const orderDate = new Date(plainItem?.orderDate);
+      // Safe date handling
+      const orderDate = plainItem?.orderDate
+        ? new Date(plainItem.orderDate)
+        : new Date();
       const finalOrder = `${orderDate.getDate()}-${
         orderMonth[orderDate.getMonth()]
       }-${orderDate.getFullYear()}`;
 
-      const reqDate = new Date(plainItem.contactDetails?.req_date);
+      const reqDate = plainItem.contactDetails?.req_date
+        ? new Date(plainItem.contactDetails.req_date)
+        : new Date();
       const finalReq = `${reqDate.getDate()}-${
         orderMonth[reqDate.getMonth()]
       }-${reqDate.getFullYear()}`;
 
-      const base_qty_full = plainItem.orderDetails.reduce(
-        (sum: number, detail: any) =>
-          sum + (Number(detail.base_qty_full_part) || 0),
-        0
-      );
-      const base_qty_half = plainItem.orderDetails.reduce(
-        (sum: number, detail: any) =>
-          sum + (Number(detail.base_qty_half_part) || 0),
-        0
-      );
+      const base_qty_full = Array.isArray(plainItem.orderDetails)
+        ? plainItem.orderDetails.reduce(
+            (sum: number, detail: any) =>
+              sum + (Number(detail?.base_qty_full_part) || 0),
+            0
+          )
+        : 0;
+
+      const base_qty_half = Array.isArray(plainItem.orderDetails)
+        ? plainItem.orderDetails.reduce(
+            (sum: number, detail: any) =>
+              sum + (Number(detail?.base_qty_half_part) || 0),
+            0
+          )
+        : 0;
+
       return {
         item,
         // Page conditions
@@ -823,17 +865,9 @@ exports.orderJobBag = catchAsyncError(
         // Conditional flags for template
         isUrgent: plainItem.status === "Validated",
 
-        hasMultipleProcesses: Array.isArray(processes) && processes.length > 1,
-        hasProcesses: processArray.length > 0,
-
-        // Formatted data for template
-        formattedOrderDate: plainItem.orderDate
-          ? new Date(plainItem.orderDate).toLocaleDateString()
-          : "N/A",
-
-        ORDERID: item.orderId,
+        ORDERID: item.orderId || "",
         ORDER_DATE: finalOrder,
-        JOBID: item.orderId.replace("/^BTPL/", "JB"),
+        JOBID: (item.orderId || "").replace("/^BTPL/", "JB"),
         JOB_NO: index + 1,
         BUYER: plainItem.contactDetails?.buyer || "",
         VENDOR: plainItem.contactDetails?.vendor || "",
@@ -847,6 +881,9 @@ exports.orderJobBag = catchAsyncError(
         LINE: firstOrderDetail?.line || "",
         CATEGORY: firstOrderDetail?.category || "",
         DESC: firstOrderDetail?.desc || "",
+        MODEL: firstOrderDetail?.model || "",
+        ITEM: firstOrderDetail?.item_pact_art || "",
+        CC: firstOrderDetail?.style_cc_iman || "",
         HEIGHT:
           firstOrderDetail?.product?.dimensionDetails?.measure?.height || "",
         LENGTH:
@@ -860,7 +897,7 @@ exports.orderJobBag = catchAsyncError(
         totalQuantity: Array.isArray(plainItem.orderDetails)
           ? plainItem.orderDetails.reduce(
               (sum: number, detail: any) =>
-                sum + (Number(detail.order_qty) || 0),
+                sum + (Number(detail?.order_qty) || 0),
               0
             )
           : 0,
@@ -868,19 +905,49 @@ exports.orderJobBag = catchAsyncError(
         baseQuantity: base_qty_full + base_qty_half,
 
         processArray: processArray,
+        processes: processArrayData,
+        orderDetails: item.orderDetails,
       };
     });
 
     const htmlPath = path.join(__dirname, "../html/order/orderJob.html");
     const htmlContent = fs.readFileSync(htmlPath, "utf-8");
 
+    Handlebars.registerHelper("eq", function (a: any, b: any) {
+      return a === b;
+    });
+
+    Handlebars.registerHelper(
+      "isIntAndGreaterThan",
+      function (value: any, minValue: any) {
+        const num = Number(value);
+        return Number.isInteger(num) && num > minValue;
+      }
+    );
+    Handlebars.registerHelper(
+      "times",
+      function (this: any, n: number, options: any) {
+        // Use Math.floor for decimal values
+        const count = Math.floor(Number(n));
+        if (count <= 0) return "";
+
+        let result = "";
+        for (let i = 0; i < count; i++) {
+          const data = Handlebars.createFrame(options.data || {});
+          data.index = i;
+          data.number = i + 1;
+          data.first = i === 0;
+          data.last = i === count - 1;
+          result += options.fn(this, { data: data });
+        }
+        return result;
+      }
+    );
+
     const template = handlebars.compile(htmlContent, {
       noEscape: true,
-      // This prevents the prototype access warnings
-      runtimeOptions: {
-        allowProtoPropertiesByDefault: true,
-        allowProtoMethodsByDefault: true,
-      },
+      allowProtoPropertiesByDefault: true,
+      allowProtoMethodsByDefault: true,
     });
 
     const html = template({
@@ -895,8 +962,6 @@ exports.orderJobBag = catchAsyncError(
       hasMultipleOrders: enhancedData.length > 1,
     });
 
-    console.log(enhancedData);
-
     const pdfBuffer = await generatePDFFromUrl({
       html: html,
       outputPath: "report.pdf",
@@ -907,10 +972,9 @@ exports.orderJobBag = catchAsyncError(
       "Content-Disposition": `attachment; filename=order-${orderId}-job-bag.pdf`,
     });
     res.send(pdfBuffer);
-
     // res.status(200).json({
     //   success: true,
-    //   test: enhancedData,
+    //   data: enhancedData,
     // });
   }
 );

@@ -13,6 +13,7 @@ const {
   createSpecification,
   createSerial,
   createItem,
+  processDetails,
 } = require("../controllers/businessController");
 
 /*============ ORGANIZATION ============= */
@@ -32,5 +33,6 @@ routerBusiness.route("/create/product/process").post(createProcess);
 routerBusiness.route("/create/process/spec").post(createSpecification);
 routerBusiness.route("/create/process/serial").post(createSerial);
 routerBusiness.route("/create/process/item").post(createItem);
+routerBusiness.route("/process/details").put(processDetails);
 
 module.exports = routerBusiness;

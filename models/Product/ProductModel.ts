@@ -1,7 +1,10 @@
 import { model, Schema, Types } from "mongoose";
 
 export interface productProcess {
+  line: string;
   name: string;
+  details: boolean;
+  information: string;
   spec: [
     {
       name: string;
@@ -83,7 +86,17 @@ export interface productDetails {
 }
 
 const processSchema = new Schema<productProcess>({
+  line: {
+    type: String,
+  },
   name: {
+    type: String,
+  },
+  details: {
+    type: Boolean,
+    default: false,
+  },
+  information: {
     type: String,
   },
   spec: [

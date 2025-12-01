@@ -5,7 +5,7 @@ import {
   ContactPerson,
 } from "../models/Bussiness/ContactDetails";
 import ErrorHandler from "../utils/errorhandler";
-import { Types } from "mongoose";
+import mongoose, { Types } from "mongoose";
 const catchAsyncError = require("../middleware/catchAsyncError");
 import {
   lineModel as Line,
@@ -16,7 +16,7 @@ import {
   serialModel as Serial,
   itemModel as Item,
 } from "../models/Bussiness/ProductLine";
-import { populate } from "dotenv";
+import { Process as ProductProcess } from "../models/Product/ProductModel";
 
 /* =====================================================================================================*/
 /* ================= Create Buyer (POST) (/buyer/create) ============================= */
@@ -244,85 +244,142 @@ exports.createCategory = catchAsyncError(
 /* ==================================================================================================== */
 exports.createProgram = catchAsyncError(
   async (req: Request, res: Response, next: NextFunction) => {
-    const { name, vendor, buyer } = req.body;
+    const session = await mongoose.startSession();
+    session.startTransaction();
 
-    if (name === undefined) {
-      return next(ErrorHandler("NAME  IS REQUIRED", 401, res, next));
-    }
+    try {
+      const { name, vendor, buyer } = req.body;
 
-    if (buyer === "N/A") {
-      const existVendor = await Vendor.findOne({ title: vendor });
-      const existBuyer = await Buyer.findOne({ title: buyer });
-
-      if (!existVendor) {
-        return next(ErrorHandler("VENDOR IS REQUIRED", 401, res, next));
+      // Input validation
+      if (!name?.trim()) {
+        await session.abortTransaction();
+        return next(ErrorHandler("NAME IS REQUIRED", 400, res, next));
       }
-      if (!existBuyer) {
-        return next(ErrorHandler("BUYER IS REQUIRED", 401, res, next));
+
+      if (!buyer?.trim()) {
+        await session.abortTransaction();
+        return next(ErrorHandler("BUYER IS REQUIRED", 400, res, next));
       }
-      const program = await Program.create({
-        name,
-        buyer: existBuyer._id as Types.ObjectId,
-        vendor: existVendor?._id as Types.ObjectId,
-      });
 
-      await existVendor?.program?.push(program._id as Types.ObjectId);
-      await existVendor?.save();
+      // Check if program already exists globally
+      const existingProgram = await Program.findOne({
+        name: name.trim(),
+      }).session(session);
+      if (existingProgram) {
+        await session.abortTransaction();
+        return next(ErrorHandler("PROGRAM ALREADY EXISTS", 409, res, next));
+      }
 
-      res.status(200).json({
+      let buyerDoc;
+      let vendorDoc;
+
+      // Handle different buyer scenarios
+      if (buyer.toUpperCase() === "N/A") {
+        // For N/A buyer, we need explicit vendor
+        if (!vendor?.trim()) {
+          await session.abortTransaction();
+          return next(
+            ErrorHandler("VENDOR IS REQUIRED FOR N/A BUYER", 400, res, next)
+          );
+        }
+
+        vendorDoc = await Vendor.findOne({ title: vendor.trim() }).session(
+          session
+        );
+        if (!vendorDoc) {
+          await session.abortTransaction();
+          return next(ErrorHandler("VENDOR NOT FOUND", 404, res, next));
+        }
+
+        // Find or create N/A buyer
+        buyerDoc = await Buyer.findOne({ title: "N/A" }).session(session);
+        if (!buyerDoc) {
+          buyerDoc = await Buyer.create([{ title: "N/A" }], { session });
+          buyerDoc = buyerDoc[0];
+        }
+      } else {
+        // For specific buyer
+        buyerDoc = await Buyer.findOne({ title: buyer.trim() }).session(
+          session
+        );
+        if (!buyerDoc) {
+          await session.abortTransaction();
+          return next(ErrorHandler("BUYER NOT FOUND", 404, res, next));
+        }
+
+        // Handle vendor logic
+        if (vendor?.trim()) {
+          // Specific vendor provided
+          vendorDoc = await Vendor.findOne({ title: vendor.trim() }).session(
+            session
+          );
+          if (!vendorDoc) {
+            await session.abortTransaction();
+            return next(ErrorHandler("VENDOR NOT FOUND", 404, res, next));
+          }
+        } else {
+          // No vendor provided, use buyer's first vendor
+          await buyerDoc.populate({
+            path: "vendor",
+            options: { limit: 1 },
+          });
+
+          if (!buyerDoc.vendor || buyerDoc.vendor.length === 0) {
+            await session.abortTransaction();
+            return next(
+              ErrorHandler(
+                "NO VENDOR ASSOCIATED WITH THIS BUYER",
+                400,
+                res,
+                next
+              )
+            );
+          }
+          vendorDoc = buyerDoc.vendor[0];
+        }
+      }
+
+      // Create program
+      const program = await Program.create(
+        [
+          {
+            name: name.trim(),
+            buyer: buyerDoc._id,
+            vendor: vendorDoc._id,
+          },
+        ],
+        { session }
+      );
+
+      if (!program || program.length === 0) {
+        await session.abortTransaction();
+        return next(ErrorHandler("FAILED TO CREATE PROGRAM", 500, res, next));
+      }
+
+      // Update vendor with new program
+      await Vendor.findByIdAndUpdate(
+        vendorDoc._id,
+        { $push: { program: program[0]._id } },
+        { session }
+      );
+
+      // Commit transaction
+      await session.commitTransaction();
+
+      res.status(201).json({
         success: true,
-        message: "SUCCESSFULLY PROGRAM CREATED",
-      });
-    } else {
-      const existBuyer = await Buyer.findOne({ title: buyer }).populate({
-        path: "vendor",
-        populate: {
-          path: "program",
+        message: "PROGRAM CREATED SUCCESSFULLY",
+        data: {
+          programId: program[0]._id,
+          programName: program[0].name,
         },
       });
-
-      if (!existBuyer) {
-        return next(ErrorHandler("BUYER IS REQUIRED", 401, res, next));
-      }
-
-      if (vendor) {
-        const program = await Program.findOne({ name });
-        const exitVendor = await Vendor.findOne({ title: vendor });
-        await exitVendor?.program.push(program?._id as Types.ObjectId);
-        await exitVendor?.save();
-        res.status(200).json({
-          success: true,
-          message: "SUCCESSFULLY PROGRAM CREATED",
-        });
-      } else {
-        let program;
-        const existProgram = await Program.findOne({ name });
-        if (existProgram) {
-          program = existProgram;
-        }
-        program = await Program.create({
-          name,
-          buyer: existBuyer._id as Types.ObjectId,
-          vendor: existBuyer.vendor[0]._id,
-        });
-
-        const bulkOps = existBuyer.vendor.map((item) => ({
-          updateOne: {
-            filter: { _id: item._id },
-            update: {
-              $push: {
-                program: program._id,
-              },
-            },
-          },
-        }));
-
-        await Vendor.bulkWrite(bulkOps);
-        res.status(200).json({
-          success: true,
-          message: "SUCCESSFULLY PROGRAM CREATED",
-        });
-      }
+    } catch (error) {
+      await session.abortTransaction();
+      console.error("Program creation error:", error);
+      return next(ErrorHandler("INTERNAL SERVER ERROR", 500, res, next));
+    } finally {
+      session.endSession();
     }
   }
 );
@@ -631,3 +688,93 @@ exports.getLine = catchAsyncError(async (req: Request, res: Response) => {
     line: productLine,
   });
 });
+
+/* =====================================================================================================*/
+/* ========================== PROCESS DETAILS (put) (/process/details) ======================== */
+/* ===================================================================================================== */
+exports.processDetails = catchAsyncError(
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { line, process, details, information } = req.body;
+
+      if (!line || !process) {
+        return res.status(400).json({
+          success: false,
+          message: "Line and process are required",
+        });
+      }
+
+      const lineData = await Line.findOne({ name: line }).populate("process");
+
+      if (!lineData) {
+        return res.status(404).json({
+          success: false,
+          message: "Line not found",
+        });
+      }
+
+      if (!lineData.process || !Array.isArray(lineData.process)) {
+        return res.status(404).json({
+          success: false,
+          message: "No processes found for this line",
+        });
+      }
+
+      const processData = lineData.process.find(
+        (val: any) => val.title === process
+      );
+
+      if (!processData) {
+        return res.status(404).json({
+          success: false,
+          message: "Process not found in this line",
+        });
+      }
+
+      const processByLine = await ProductProcess.find({
+        line: line,
+        name: process,
+      });
+
+      const bulkOps = processByLine.map((item) => ({
+        updateOne: {
+          filter: { _id: item._id },
+          update: {
+            $set: {
+              details: details,
+              information: information,
+            },
+          },
+        },
+      }));
+
+      if (bulkOps.length > 0) {
+        await ProductProcess.bulkWrite(bulkOps);
+      }
+
+      const updatedProcess = await Process.findByIdAndUpdate(
+        processData._id,
+        {
+          details: details,
+          information: information,
+        },
+        {
+          new: true,
+          runValidators: true,
+        }
+      );
+
+      if (!updatedProcess) {
+        return next(ErrorHandler("UPDATE PROCESS FAILED", 400, res, next));
+      }
+
+      res.status(200).json({
+        success: true,
+        message: "SUCCESSFULLY UPDATED",
+      });
+    } catch (error) {
+      console.error("Update error:", error); // Detailed error logging
+      next(error);
+    }
+  }
+);

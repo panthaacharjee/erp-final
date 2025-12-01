@@ -9,11 +9,13 @@ const {
   getLoginHistory,
   getUser,
   loginAuth,
+  appUserUpdate,
 } = require("../controllers/authController");
 
 const { isAuthenticatedUser } = require("../middleware/auth");
 
 router.route("/register/user").post(registerEmployee);
+router.route("/update/user/app").put(appUserUpdate);
 router.route("/login/user").post(capture, loginUser);
 router.route("/login/auth").post(capture, loginAuth);
 router.route("/logout").get(logout);

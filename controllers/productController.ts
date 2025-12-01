@@ -381,6 +381,7 @@ exports.createProductProcess = catchAsyncError(
       };
       const newProcess = await Process.create({
         name: process,
+        line: findProduct.product.line,
       });
 
       await newProcess.spec.push(data);

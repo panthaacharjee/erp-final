@@ -33,7 +33,7 @@
 
       /* Style for each page content using CSS Grid */
       .page-content {
-        min-height: 293mm;
+        min-height: 292mm;
         display: grid;
         grid-template-rows: 1fr auto;
         grid-template-areas:
@@ -140,43 +140,6 @@
           </p>
         </div>
 
-        <!-- <table style="width: 100%; border-collapse: collapse; margin-top: 10px">
-          <tbody style="height: 20px">
-            <tr style="height: 10px; font-size: 10px">
-              <td
-                style="
-                  border: 1px solid black;
-                  font-size: 14px;
-                  font-weight: bold;
-                  background: #aaffbc;
-                "
-              >
-                Regular
-              </td>
-              <td style="border: 1px solid black">
-                <span>Job Bag: </span
-                ><span>{{this.ORDERID}}-{{this.JOB_NO}}</span>
-              </td>
-              <td style="border: 1px solid black">
-                <span>Buyer: </span><span>{{this.BUYER}}</span>
-              </td>
-              <td style="border: 1px solid black">
-                <span>Vendor:</span><span>{{this.VENDOR}}</span>
-              </td>
-              <td style="border: 1px solid black; line-height: 5px">
-                <p>Buyer Ref: {{this.BUYER_REF}}</p>
-                <p>Vendor Ref: {{this.VENDOR_REF}}</p>
-              </td>
-            </tr>
-            <tr style="height: 40px">
-              <td style="border: 1px solid black">Regular</td>
-              <td style="border: 1px solid black">Regular</td>
-              <td style="border: 1px solid black">Regular</td>
-              <td style="border: 1px solid black">Regular</td>
-            </tr>
-          </tbody>
-        </table> -->
-
         <table>
           <tr style="line-height: 1px; padding: 0px 8px !important">
             <td
@@ -227,15 +190,375 @@
             <td>RM:</td>
             <td>Booking Qty: {{this.totalQuantity}}</td>
             <td>Base Qty: {{this.baseQuantity}} Pcs</td>
-            <td></td>
+            <td style="font-weight: bold">Category: {{this.CATEGORY}}</td>
             <td>Request Date: {{this.REQ_DATE}}</td>
           </tr>
           <tr style="font-weight: 500">
             <td colspan="2">CS: {{this.CS}}</td>
-            <td colspan="2"></td>
+            <td colspan="2" style="font-weight: bold">
+              {{#if this.MODEL}}Model: {{this.MODEL}},{{/if}} {{#if
+              this.ITEM}}ITEM/ART/PACK: {{this.ITEM}},{{/if}} Style/Iman/CC:
+              {{this.CC}}
+            </td>
             <td></td>
           </tr>
         </table>
+
+        <div
+          style="
+            display: flex;
+            flex-wrap: wrap;
+            margin-top: 10px;
+            justify-content: space-between;
+            padding-bottom: 3px;
+            border-bottom: 1px solid black;
+          "
+        >
+          {{#each processArray}}
+          <div style="width: 49%">
+            <table style="margin-top: 4px">
+              <tr>
+                <td style="width: 40%">{{this.title}}</td>
+                <td style="width: 60%">{{this.value}} {{this.item}}</td>
+              </tr>
+            </table>
+          </div>
+          {{/each}}
+        </div>
+
+        {{#each processes}}
+        <div>
+          <p style="font-size: 10px">Process : {{this.title}}</p>
+          {{#if (eq this.information "Full")}}
+          <table>
+            <tr style="background-color: aquamarine">
+              <td>Model</td>
+              <td>Colour</td>
+              <td>Size/Age</td>
+              <td>EAN</td>
+              <td>Total Part</td>
+              <td>Order Qty</td>
+              <td>Part No</td>
+              <td>Base Qty</td>
+              <td>Production Qty</td>
+              <td>Full Date</td>
+              <td>Machine No</td>
+              <td>Operator</td>
+            </tr>
+            {{#each ../orderDetails}}
+            <tr>
+              <td>{{this.model}}</td>
+              <td>{{this.gmts_color}}</td>
+              <td style="text-align: center">{{this.size_age}}</td>
+              <td>{{this.ean_number}}</td>
+              <td style="text-align: center">{{this.page_part}}</td>
+              <td style="text-align: center">{{this.order_qty}}</td>
+              <td style="padding: 0px">
+                {{#if (isIntAndGreaterThan this.page_part 0)}}
+                <table style="margin-top: 0px">
+                  {{#times this.page_part}}
+                  <tr>
+                    {{#if @last}}
+                    <td
+                      style="
+                        border: none;
+                        border-bottom: 0px solid black;
+                        text-align: center;
+                      "
+                    >
+                      {{@number}}
+                    </td>
+                    {{else}}
+                    <td
+                      style="
+                        border: none;
+                        border-bottom: 1px solid black;
+                        text-align: center;
+                      "
+                    >
+                      {{@number}}
+                    </td>
+                    {{/if}}
+                  </tr>
+                  {{/times}}
+                </table>
+                {{else}}
+                <table style="margin-top: 0px">
+                  <tr>
+                    <td
+                      style="
+                        border: none;
+                        border-bottom: 1px solid black;
+                        text-align: center;
+                      "
+                    >
+                      0.5
+                    </td>
+                  </tr>
+                  {{#times this.page_part}}
+                  <tr>
+                    {{#if @last}}
+                    <td
+                      style="
+                        border: none;
+                        border-bottom: 0px solid black;
+                        text-align: center;
+                      "
+                    >
+                      {{@number}}
+                    </td>
+                    {{else}}
+                    <td
+                      style="
+                        border: none;
+                        border-bottom: 1px solid black;
+                        text-align: center;
+                      "
+                    >
+                      {{@number}}
+                    </td>
+                    {{/if}}
+                  </tr>
+                  {{/times}}
+                </table>
+                {{/if}}
+              </td>
+              <td style="padding: 0px">
+                {{#if (isIntAndGreaterThan this.page_part 0)}}
+                <table style="margin-top: 0px">
+                  {{#times this.page_part}}
+                  <tr>
+                    {{#if @last}}
+                    <td
+                      style="
+                        border: none;
+                        border-bottom: 0px solid black;
+                        text-align: center;
+                      "
+                    >
+                      {{this.order_qty}}
+                    </td>
+                    {{else}}
+                    <td
+                      style="
+                        border: none;
+                        border-bottom: 1px solid black;
+                        text-align: center;
+                      "
+                    >
+                      {{this.order_qty}}
+                    </td>
+                    {{/if}}
+                  </tr>
+                  {{/times}}
+                </table>
+                {{else}}
+                <table style="margin-top: 0px">
+                  <tr>
+                    <td
+                      style="
+                        border: none;
+                        border-bottom: 1px solid black;
+                        text-align: center;
+                      "
+                    >
+                      {{this.order_qty}}
+                    </td>
+                  </tr>
+                  {{#times this.page_part}}
+                  <tr>
+                    {{#if @last}}
+                    <td
+                      style="
+                        border: none;
+                        border-bottom: 0px solid black;
+                        text-align: center;
+                      "
+                    >
+                      {{this.order_qty}}
+                    </td>
+                    {{else}}
+                    <td
+                      style="
+                        border: none;
+                        border-bottom: 1px solid black;
+                        text-align: center;
+                      "
+                    >
+                      {{this.order_qty}}
+                    </td>
+                    {{/if}}
+                  </tr>
+                  {{/times}}
+                </table>
+                {{/if}}
+              </td>
+              <td style="padding: 0px">
+                {{#if (isIntAndGreaterThan this.page_part 0)}}
+                <table style="margin-top: 0px">
+                  {{#times this.page_part}}
+                  <tr>
+                    {{#if @last}}
+                    <td style="border: none; border-bottom: 0px solid black">
+                      Qty:
+                    </td>
+                    {{else}}
+                    <td style="border: none; border-bottom: 1px solid black">
+                      Qty:
+                    </td>
+                    {{/if}}
+                  </tr>
+                  {{/times}}
+                </table>
+                {{else}}
+                <table style="margin-top: 0px">
+                  <tr>
+                    <td style="border: none; border-bottom: 1px solid black">
+                      Qty:
+                    </td>
+                  </tr>
+                  {{#times this.page_part}}
+                  <tr>
+                    {{#if @last}}
+                    <td style="border: none; border-bottom: 0px solid black">
+                      Qty:
+                    </td>
+                    {{else}}
+                    <td style="border: none; border-bottom: 1px solid black">
+                      Qty:
+                    </td>
+                    {{/if}}
+                  </tr>
+                  {{/times}}
+                </table>
+                {{/if}}
+              </td>
+              <td style="padding: 0px">
+                {{#if (isIntAndGreaterThan this.page_part 0)}}
+                <table style="margin-top: 0px">
+                  {{#times this.page_part}}
+                  <tr>
+                    {{#if @last}}
+                    <td style="border: none; border-bottom: 0px solid black">
+                      Qty:
+                    </td>
+                    {{else}}
+                    <td style="border: none; border-bottom: 1px solid black">
+                      Qty:
+                    </td>
+                    {{/if}}
+                  </tr>
+                  {{/times}}
+                </table>
+                {{else}}
+                <table style="margin-top: 0px">
+                  <tr>
+                    <td style="border: none; border-bottom: 1px solid black">
+                      Qty:
+                    </td>
+                  </tr>
+                  {{#times this.page_part}}
+                  <tr>
+                    {{#if @last}}
+                    <td style="border: none; border-bottom: 0px solid black">
+                      Qty:
+                    </td>
+                    {{else}}
+                    <td style="border: none; border-bottom: 1px solid black">
+                      Qty:
+                    </td>
+                    {{/if}}
+                  </tr>
+                  {{/times}}
+                </table>
+                {{/if}}
+              </td>
+              <td style="padding: 0px">
+                {{#if (isIntAndGreaterThan this.page_part 0)}}
+                <table style="margin-top: 0px">
+                  {{#times this.page_part}}
+                  <tr>
+                    {{#if @last}}
+                    <td style="border: none; border-bottom: 0px solid black">
+                      Qty:
+                    </td>
+                    {{else}}
+                    <td style="border: none; border-bottom: 1px solid black">
+                      Qty:
+                    </td>
+                    {{/if}}
+                  </tr>
+                  {{/times}}
+                </table>
+                {{else}}
+                <table style="margin-top: 0px">
+                  <tr>
+                    <td style="border: none; border-bottom: 1px solid black">
+                      Qty:
+                    </td>
+                  </tr>
+                  {{#times this.page_part}}
+                  <tr>
+                    {{#if @last}}
+                    <td style="border: none; border-bottom: 0px solid black">
+                      Qty:
+                    </td>
+                    {{else}}
+                    <td style="border: none; border-bottom: 1px solid black">
+                      Qty:
+                    </td>
+                    {{/if}}
+                  </tr>
+                  {{/times}}
+                </table>
+                {{/if}}
+              </td>
+              <td style="padding: 0px">
+                {{#if (isIntAndGreaterThan this.page_part 0)}}
+                <table style="margin-top: 0px">
+                  {{#times this.page_part}}
+                  <tr>
+                    {{#if @last}}
+                    <td
+                      style="border: none; border-bottom: 0px solid black"
+                    ></td>
+                    {{else}}
+                    <td
+                      style="border: none; border-bottom: 1px solid black"
+                    ></td>
+                    {{/if}}
+                  </tr>
+                  {{/times}}
+                </table>
+                {{else}}
+                <table style="margin-top: 0px">
+                  <tr>
+                    <td
+                      style="border: none; border-bottom: 1px solid black"
+                    ></td>
+                  </tr>
+                  {{#times this.page_part}}
+                  <tr>
+                    {{#if @last}}
+                    <td
+                      style="border: none; border-bottom: 0px solid black"
+                    ></td>
+                    {{else}}
+                    <td
+                      style="border: none; border-bottom: 1px solid black"
+                    ></td>
+                    {{/if}}
+                  </tr>
+                  {{/times}}
+                </table>
+                {{/if}}
+              </td>
+            </tr>
+            {{/each}}
+          </table>
+          {{/if}}
+        </div>
+        {{/each}}
       </div>
 
       <!-- Footer at the bottom of each page -->

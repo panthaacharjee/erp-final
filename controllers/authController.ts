@@ -225,6 +225,29 @@ exports.registerEmployee = catchAsyncError(
   }
 );
 
+/* =====================================================================================================*/
+/* ============================= APP REGISTER (put) (/update/employee/app) ================================= */
+/* ===================================================================================================== */
+
+exports.appUserUpdate = catchAsyncError(async (req: Request, res: Response) => {
+  const { id, userName, password } = req.body;
+  const user = await User.findById(id);
+  if (user) {
+    const hashPass = await hashPassword(password);
+    await User.findByIdAndUpdate(user._id, {
+      userName: userName,
+      authentication: {
+        password: hashPass,
+      },
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "SUCCESSFULL",
+    });
+  }
+});
+
 /* ===================================================================================================== */
 /* ============================= LOGIN USER (POST) (/login/user) ================================= */
 /* ===================================================================================================== */
